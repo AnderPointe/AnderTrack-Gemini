@@ -2,7 +2,7 @@ name: Validate Andertrack UI
 
 on:
   pull_request:
-    branches: [main, 'migration/**']
+    branches: [main, 'migration/**', 'feature/**']
   push:
     branches: [main]
 
@@ -22,5 +22,11 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Regression tests
         run: npm test
-      - name: Production build
+      - name: Main dashboard build
         run: npm run build
+      - name: Install driver app dependencies
+        run: npm install --prefix apps/driver --no-audit --no-fund
+      - name: Driver app unit tests
+        run: npm --prefix apps/driver test
+      - name: Driver app production build
+        run: npm --prefix apps/driver run build

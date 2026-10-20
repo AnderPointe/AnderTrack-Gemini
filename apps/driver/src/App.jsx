@@ -280,7 +280,7 @@ export default function App(){
 
   async function action(job,kind,next){
     if(!supabase||!user||job.driver_user_id!==user.id||
-      profile?.license_verified!==true)return;
+      (kind!=='decline'&&profile?.license_verified!==true))return;
     const operation=kind==='offer'||kind==='decline'?'at_respond_assignment':
       kind==='advance'?'at_advance_assignment':null;
     if(!operation)return;
