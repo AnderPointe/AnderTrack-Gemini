@@ -4,6 +4,7 @@ import {
   ChevronRight, CircleHelp, Clock3, Command, Database, Filter, LayoutDashboard, LockKeyhole,
   LogOut, MapPinned, Menu, Moon, Package, Radio, RefreshCw, Route, Search, Settings2,
   ShieldCheck, Sun, Truck, Users, Wifi, X, Zap, Sparkles, Download, Keyboard, History, HeartPulse,
+  Warehouse, UtensilsCrossed, CarFront,
 } from 'lucide-react';
 import FleetMap from './FleetMap.jsx';
 import { ACTIVE_STATUSES, freshGpsPosition, visibleShipments, selectedVisibleShipment } from '../../lib/operations.js';
@@ -23,25 +24,15 @@ import DispatchModeDashboard from './DispatchModeDashboard.jsx';
 import {WarehouseOperationsDashboard,DeliveryOverviewDashboard} from './ModernOperationsDashboards.jsx';
 import DriverVehicleProfiles from './DriverVehicleProfiles.jsx';
 import ClassCOpsDashboard from './ClassCOpsDashboard.jsx';
+import {UniversalDivisionLaunchpad,UniversalDivisionWorkspace} from './UniversalDivisionWorkspace.jsx';
+import {UNIVERSAL_NAV_GROUPS,getUniversalNavItem,getUniversalWorkspace} from '../../lib/universal-navigation.js';
 
-const NAV = [
-  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { id: 'delivery-overview', label: 'Delivery Overview', icon: Package },
-  { id: 'warehouse', label: 'Warehouse Operations', icon: Truck },
-  { id: 'class-c', label: 'Class C Fleet', icon: Truck },
-  { id: 'tracking', label: 'Live tracking', icon: MapPinned },
-  { id: 'intelligent-fleet', label: 'Fleet intelligence', icon: Radio },
-  { id: 'fleet-health', label: 'Fleet Health', icon: HeartPulse },
-  { id: 'driver-cockpit', label: 'Driver Cockpit & HOS', icon: HeartPulse },
-  { id: 'dispatch', label: 'Dispatch center', icon: Route },
-  { id: 'dispatch-mode', label: 'Dispatch Mode', icon: MapPinned },
-  { id: 'dispatch-planner', label: 'Dispatch optimization', icon: Sparkles },
-  { id: 'journeys', label: 'Shipment journeys', icon: History },
-  { id: 'intelligence', label: 'Smart Operations', icon: Sparkles },
-  { id: 'fleet', label: 'Drivers & fleet', icon: Truck },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { id: 'settings', label: 'Workspace settings', icon: Settings2 },
-];
+const UNIVERSAL_ICONS = {
+  dashboard:LayoutDashboard, map:MapPinned, dispatch:Radio, route:Route,
+  freight:Truck, hotshot:Zap, history:History, warehouse:Warehouse,
+  package:Package, fleet:Truck, food:UtensilsCrossed, passenger:CarFront,
+  health:HeartPulse, insights:Sparkles, analytics:BarChart3, settings:Settings2,
+};
 const ACTIVE_STATES = ACTIVE_STATUSES;
 const human = value => String(value || 'Unknown').replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
 const stamp = value => {
@@ -285,11 +276,22 @@ export default function OpsCommandCenter({
         <button className="at-mobile-close" onClick={()=>setMobileMenu(false)} aria-label="Close navigation"><X size={19}/></button>
       </div>
       <div className="at-workspace-switch"><div className="at-org-monogram">A</div><div><strong>AnderPointe</strong><small>{isDemo?'Demo workspace':human(role)+' workspace'}</small></div><ChevronRight size={16}/></div>
-      <div className="at-nav-section">WORKSPACE</div>
-      <nav className="at-side-nav" aria-label="Command center navigation">{NAV.map(({id,label,icon:Icon})=>
-        <button key={id} onClick={()=>open(id)} className={'at-nav-item '+(view===id?'at-nav-active':'')} aria-current={view===id?'page':undefined}>
-          <Icon size={19}/><span>{label}</span>{id==='dispatch'&&dispatchRequests.length>0&&<em>{dispatchRequests.length}</em>}
-        </button>)}</nav>
+      <nav className="at-side-nav" aria-label="Universal logistics navigation">
+        {UNIVERSAL_NAV_GROUPS.map(group=><div className="at-universal-nav-group" key={group.id}>
+          <div className="at-universal-group-title">{group.label}</div>
+          {group.items.map(({id,label,icon,status})=>{
+            const Icon=UNIVERSAL_ICONS[icon]||Package;
+            return <button key={id} type="button" onClick={()=>open(id)}
+              className={'at-nav-item '+(view===id?'at-nav-active':'')}
+              aria-current={view===id?'page':undefined}
+              title={label+(status==='planned'?' (architecture preview)':'')}>
+              <Icon size={19}/><span>{label}</span>
+              {status==='planned'&&<small className="at-nav-badge">PLAN</small>}
+              {id==='dispatch'&&dispatchRequests.length>0&&<em>{dispatchRequests.length}</em>}
+            </button>;
+          })}
+        </div>)}
+      </nav>
       <div className="at-sidebar-bottom">
         <div className="at-signal-card"><span className="at-signal-graphic"><Radio size={20}/></span>
           <div><strong>Operations network</strong><small>{isDemo?'Sample data · offline':sync}</small></div>
@@ -303,7 +305,7 @@ export default function OpsCommandCenter({
       <header className="at-topbar">
         <div className="at-topbar-left">
           <button className="at-icon-button at-mobile-menu" onClick={()=>setMobileMenu(true)} aria-label="Open navigation"><Menu size={21}/></button>
-          <span className="at-breadcrumb">WORKSPACE</span><ChevronRight size={14}/><strong>{NAV.find(n=>n.id===view)?.label}</strong>
+          <span className="at-breadcrumb">WORKSPACE</span><ChevronRight size={14}/><strong>{getUniversalNavItem(view)?.label}</strong>
         </div>
         <div className="at-topbar-actions">
           <label className="at-global-search"><Search size={17}/><input value={query} onChange={e=>{setQuery(e.target.value);if(e.target.value.trim())open('dispatch');}}
@@ -319,7 +321,7 @@ export default function OpsCommandCenter({
       <main className="at-content">
         <section className="at-page-heading">
           <div><div className="at-eyebrow"><span className="at-eyebrow-bar"/>ANDERTRACK / {isDemo?'INTERACTIVE DEMO':'SECURE OPERATIONS'}</div>
-            <h1>{view==='overview'?'Operations at a glance':NAV.find(n=>n.id===view)?.label}</h1>
+            <h1>{view==='overview'?'Operations at a glance':getUniversalNavItem(view)?.label}</h1>
             <p>{view==='overview'?'Everything moving, everyone connected. One command center.':
               view==='tracking'?'Real-time fleet visibility, location history and live operational context.':
               view==='warehouse'?'A bright equipment staging and warehouse operations view, linked to real shipment records.':
@@ -335,7 +337,7 @@ export default function OpsCommandCenter({
               view==='fleet'?'Verified people and ready equipment, side by side.':
               view==='analytics'?'Operational trends based on actual records, never estimated activity.':
               view==='intelligence'?'Live operational signals, quick triage and verifiable recent activity.':
-              'Workspace controls, session security and source transparency.'}</p>
+              getUniversalWorkspace(view)?.description || 'Workspace controls, session security and source transparency.'}</p>
           </div>
           <div className="at-heading-actions">
             <span className={'at-live-chip '+(isDemo?'demo':'')}><span className="at-pulsing-dot"/>{isDemo?'SAMPLE DATA':'LIVE WORKSPACE'}</span>
@@ -350,7 +352,9 @@ export default function OpsCommandCenter({
           {!isDemo&&memberships.length>1&&<div className="at-org-select"><label htmlFor="at-org">Active organization</label><select id="at-org" value={organizationId} onChange={e=>setOrganizationId(e.target.value)}>{memberships.map(m=>
             <option key={m.organization_id} value={m.organization_id}>{m.organization_id.slice(0,8)} · {m.role}</option>)}</select></div>}
           {noDriver&&<div className="at-alert"><LockKeyhole size={18}/> Driver onboarding incomplete. Your organization must create a profile and verify your license before assignments and queue requests are available.</div>}
+          {getUniversalWorkspace(view)&&<UniversalDivisionWorkspace view={view} onNavigate={open} role={role} isDemo={isDemo}/>}
           {view==='overview'&&<>
+            <UniversalDivisionLaunchpad onNavigate={open}/>
             <div className="at-metrics-grid">{metrics.map(m=><MetricCard key={m.label} {...m}/>)}</div>
             <div className="at-hero-grid">
               <TrackingPanel locations={locations} theme={theme} isDemo={isDemo} drivers={drivers} onChoose={onChoose} scopeKey={organizationId}/>
