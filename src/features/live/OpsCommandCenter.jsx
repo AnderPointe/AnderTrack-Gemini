@@ -26,6 +26,8 @@ import DriverVehicleProfiles from './DriverVehicleProfiles.jsx';
 import ClassCOpsDashboard from './ClassCOpsDashboard.jsx';
 import {UniversalDivisionLaunchpad,UniversalDivisionWorkspace} from './UniversalDivisionWorkspace.jsx';
 import {UNIVERSAL_NAV_GROUPS,getUniversalNavItem,getUniversalWorkspace} from '../../lib/universal-navigation.js';
+import UniversalDispatchFoundation from './UniversalDispatchFoundation.jsx';
+import './universal-dispatch.css';
 
 const UNIVERSAL_ICONS = {
   dashboard:LayoutDashboard, map:MapPinned, dispatch:Radio, route:Route,
@@ -355,6 +357,8 @@ export default function OpsCommandCenter({
           {getUniversalWorkspace(view)&&<UniversalDivisionWorkspace view={view} onNavigate={open} role={role} isDemo={isDemo}/>}
           {view==='overview'&&<>
             <UniversalDivisionLaunchpad onNavigate={open}/>
+            <UniversalDispatchFoundation assignments={ordered} organizationId={organizationId} isDemo={isDemo}
+              onOpenDispatch={()=>open('dispatch')} onOpenPlanner={()=>open('dispatch-planner')}/>
             <div className="at-metrics-grid">{metrics.map(m=><MetricCard key={m.label} {...m}/>)}</div>
             <div className="at-hero-grid">
               <TrackingPanel locations={locations} theme={theme} isDemo={isDemo} drivers={drivers} onChoose={onChoose} scopeKey={organizationId}/>
