@@ -152,3 +152,15 @@ test('active assignments block double booking, completed do not',()=>{
   const done={id:'d',organization_id:ORG,driver_user_id:'driver-1',vehicle_id:'vehicle-1',status:'delivered'};
   assert.equal(evaluateUniversalCandidate({...base,assignments:[done]}).eligible,true);
 });
+
+test('unknown nonterminal statuses, same-job claims and unscoped feeds fail closed',()=>{
+  const base=inputs();
+  for(const assignment of [
+    {id:'job-1',organization_id:ORG,driver_user_id:'driver-1',vehicle_id:'vehicle-1',status:'assigned'},
+    {id:'u1',organization_id:ORG,driver_user_id:'driver-1',vehicle_id:'vehicle-1',service_type:'unknown',status:'sailing'},
+    {id:'u2',organization_id:ORG,driver_user_id:'driver-1',vehicle_id:'vehicle-1',status:'unrecognized'},
+  ]) assert.equal(evaluateUniversalCandidate({...base,assignments:[assignment]}).eligible,false);
+  assert.equal(evaluateUniversalCandidate({...base,
+    assignments:[{id:'x',organization_id:'other-org',driver_user_id:'another',vehicle_id:'other',status:'assigned'}]
+  }).eligible,false);
+});
