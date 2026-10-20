@@ -4,7 +4,7 @@ import {summarizeExistingDispatch} from '../../lib/universal-jobs.js';
 
 /** RLS-scoped legacy assignments only; no food or ride volumes inferred. */
 export default function UniversalDispatchFoundation({
-  assignments=[],organizationId='',isDemo=false,onOpenDispatch=()=>{},onOpenPlanner=()=>{},
+  assignments=[],organizationId='',isDemo=false,canPlan=false,onOpenDispatch=()=>{},onOpenPlanner=()=>{},
 }) {
   const counts=summarizeExistingDispatch(assignments,organizationId,{isDemo});
   return <section className="at-surface at-universal-foundation" aria-label="Unified dispatch foundation">
@@ -28,7 +28,7 @@ export default function UniversalDispatchFoundation({
     <footer className="at-universal-foundation-footer">
       <span>Candidate matching remains advisory; assignment writes use existing protected RPCs and safety interlocks.</span>
       <div>
-        <button type="button" onClick={onOpenPlanner}>Review planner <ArrowRight size={14}/></button>
+        {canPlan&&<button type="button" onClick={onOpenPlanner}>Review planner <ArrowRight size={14}/></button>}
         <button type="button" onClick={onOpenDispatch}>Dispatch queue <ArrowRight size={14}/></button>
       </div>
     </footer>
