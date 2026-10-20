@@ -3,11 +3,10 @@
  * Existing at_* RPCs must recheck org, FIFO, lock order, safety and concurrency.
  */
 import {screenVehicleSafety} from './fleet-safety-interlocks.js';
-import {isDispatchableJob,isActiveServiceJob} from './universal-jobs.js';
+import {isDispatchableJob,isTerminalServiceJob} from './universal-jobs.js';
 
 const LICENSE_LEVEL={C:1,B:2,A:3};
 const HIGH_RISK_SERVICES=new Set(['food_delivery','passenger_ride']);
-const LEGACY_ACTIVE=new Set(['offered','assigned','accepted','at_pickup','picked_up','in_transit']);
 
 function meetsLicense(driver,vehicle){
   return LICENSE_LEVEL[driver?.license_class]>=LICENSE_LEVEL[vehicle?.required_license_class];
@@ -72,13 +71,18 @@ export function evaluateUniversalCandidate({
 
   if(!Array.isArray(assignments))reasons.push('Existing assignments unavailable');
   else for(const a of assignments){
-    if(!a || a.organization_id!==organizationId)continue;
+    if(!a || a.organization_id!==organizationId){
+      reasons.push('Assignment feed is not organization-scoped');
+      break;
+    }
     if(a.driver_user_id!==driver?.user_id && a.vehicle_id!==vehicle?.id)continue;
-    const active= a.service_type?
-      isActiveServiceJob({serviceType:a.service_type,status:a.status}) :
-      LEGACY_ACTIVE.has(a.status);
-    if(active && (!job?.id || a.id!==job.id)) {
-      reasons.push('Driver or vehicle has another active assignment');
+    // A claimed driver/vehicle remains busy unless a *verified* terminal state
+    // explicitly releases it. Missing/unknown status must fail closed.
+    const released=a.service_type ?
+      isTerminalServiceJob({serviceType:a.service_type,status:a.status}) :
+      ['delivered','cancelled'].includes(a.status);
+    if(!released){
+      reasons.push('Driver or vehicle has another non-terminal assignment');
       break;
     }
   }
