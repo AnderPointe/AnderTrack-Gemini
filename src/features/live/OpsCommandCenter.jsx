@@ -357,7 +357,7 @@ export default function OpsCommandCenter({
           {getUniversalWorkspace(view)&&<UniversalDivisionWorkspace view={view} onNavigate={open} role={role} isDemo={isDemo}/>}
           {view==='overview'&&<>
             <UniversalDivisionLaunchpad onNavigate={open}/>
-            <UniversalDispatchFoundation assignments={ordered} organizationId={organizationId} isDemo={isDemo}
+            <UniversalDispatchFoundation assignments={ordered} organizationId={organizationId} isDemo={isDemo} canPlan={planner||isDemo}
               onOpenDispatch={()=>open('dispatch')} onOpenPlanner={()=>open('dispatch-planner')}/>
             <div className="at-metrics-grid">{metrics.map(m=><MetricCard key={m.label} {...m}/>)}</div>
             <div className="at-hero-grid">
