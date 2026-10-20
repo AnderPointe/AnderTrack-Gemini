@@ -37,7 +37,8 @@ test('exactly six service types and Class C isolation',()=>{
   }
 });
 test('normalization validates service-specific source, status and organization',()=>{
-  for(const type of SERVICE_TYPES) assert.equal(makeJob(type)?.serviceType,type);
+  for(const type of SERVICE_TYPES) assert.equal(makeJob(type,type==='passenger_ride' ?
+    {requirements:{passenger_count:1}} : {})?.serviceType,type);
   assert.equal(normalizeUniversalJob(makeRow('food_delivery'), 'other-org'),null);
   assert.equal(normalizeUniversalJob(makeRow('food_delivery',{source_kind:'passenger_trip'}),ORG),null);
   assert.equal(normalizeUniversalJob(makeRow('food_delivery',{status:'in_transit'}),ORG),null);
