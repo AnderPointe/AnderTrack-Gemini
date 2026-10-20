@@ -2,7 +2,7 @@ name: Validate Andertrack UI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, 'migration/**']
   push:
     branches: [main]
 
