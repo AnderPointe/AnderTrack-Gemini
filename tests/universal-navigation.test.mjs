@@ -43,3 +43,13 @@ test('unknown workspace and navigation IDs fail closed',()=>{
   assert.equal(getUniversalWorkspace('__unknown__'),null);
   assert.equal(getUniversalNavItem('__unknown__'),null);
 });
+
+
+test('command center imports and renders the universal navigation with safe planned views', async()=>{
+  const {readFileSync}=await import('node:fs');
+  const body=readFileSync(new URL('../src/features/live/OpsCommandCenter.jsx',import.meta.url),'utf8');
+  assert.match(body,/UNIVERSAL_NAV_GROUPS\.map/);
+  assert.match(body,/UniversalDivisionLaunchpad/);
+  assert.match(body,/UniversalDivisionWorkspace/);
+  assert.match(body,/getUniversalWorkspace\(view\)/);
+});

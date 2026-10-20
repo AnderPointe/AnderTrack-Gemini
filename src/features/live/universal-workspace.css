@@ -34,3 +34,15 @@
 .at-nav-badge{font-size:9px;font-weight:800;letter-spacing:.03em;color:#e1b36a;margin-left:auto}
 @media(max-width:1200px){.at-universal-divisions{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:720px){.at-universal-divisions,.at-universal-capability-grid{grid-template-columns:1fr}.at-universal-launchpad-head{flex-wrap:wrap}}
+
+/* Condensed desktop rail: preserve icons but avoid long group headings. */
+@media (min-width:621px) and (max-width:1150px) {
+  .at-universal-group-title { font-size:0; border-top:1px solid #ffffff1b; min-height:12px; padding:8px 0 0; }
+  .at-sidebar .at-universal-nav-group .at-nav-item { justify-content:center; padding:12px 6px; }
+  .at-nav-badge { display:none; }
+}
+/* The mobile drawer always shows headings and labels when opened. */
+@media (max-width:620px) {
+  .at-sidebar-open .at-universal-group-title { font-size:9px; padding:10px 11px 7px; }
+  .at-sidebar-open .at-universal-nav-group .at-nav-item { justify-content:flex-start; padding:10px 11px; }
+}
