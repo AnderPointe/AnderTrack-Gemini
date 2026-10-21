@@ -44,3 +44,17 @@ Never put a `service_role` key in a `VITE_*` variable or commit `.env.local`.
 - Preview variables: staging-only `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`
 
 Do not connect to production Vercel or production Supabase before the access review, DB verification and user approval. Full release gates in `docs/VERCEL_WEB_DRIVER_PLAN.md`.
+
+## Phase 5 — Dispatch QA Lab and resilient assignment refresh
+
+The pre-auth training screen now links to **Open Dispatch QA Lab**. It is an isolated,
+fictional two-pane dispatcher/driver simulation. FIFO qualification gates, per-driver
+visibility, sample offers, acceptance/decline, and pickup-stage progress are all
+modeled in local React state without database writes or real assignments. Tests
+are in `tests/dispatch-training.test.mjs`.
+
+For **authenticated** driver sessions, Realtime subscription state is displayed
+accurately. Server events are coalesced before querying the driver's RLS-scoped
+assignment list. A visibility-aware 30-second polling fallback repairs missed
+updates. The status badge never claims a connection when the device is offline.
+Details and staging limitations: `../../docs/PHASE5_DISPATCH_STAGING_QA.md`.
