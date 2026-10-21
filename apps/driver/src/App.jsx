@@ -5,6 +5,7 @@ import {
   Truck,UserRound,Wifi,WifiOff,XCircle,
 } from 'lucide-react';
 import {supabase,configured} from './supabase.js';
+import {readCooldownUntil,saveCooldownUntil,rateLimitReached,remainingCooldownSeconds,formatCooldownSeconds,AUTH_SEND_COOLDOWN_MS,AUTH_RATE_LIMIT_BACKOFF_MS} from './auth-feedback.js';
 import {
   assignmentsForDriver,classifyLegacyAssignment,driverAssignmentAction,
   externalRouteUrl,formatAssignmentStatus,groupDriverAssignments,validLocalPosition,
@@ -35,7 +36,7 @@ function PageShell({children,user,onSignOut,online}) {
   </div>;
 }
 
-function Login({onLogin,loading,message}) {
+function Login({onLogin,loading,message,cooldownSeconds=0}) {
   const [email,setEmail]=useState('');
   return <section className="driver-auth">
     <div className="driver-auth-icon"><ShieldCheck size={31}/></div>
@@ -46,10 +47,13 @@ function Login({onLogin,loading,message}) {
       <label htmlFor="driver-email">Work email</label>
       <input id="driver-email" type="email" placeholder="driver@company.com"
         value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
-      <button disabled={loading} className="driver-primary" type="submit">
+      <button disabled={loading||cooldownSeconds>0} className="driver-primary" type="submit">
         {loading?<RefreshCw className="spin" size={18}/>:<ArrowRight size={18}/>}
-        Send sign-in link
+        {cooldownSeconds>0?'Retry in '+formatCooldownSeconds(cooldownSeconds):'Send sign-in link'}
       </button>
+      {cooldownSeconds>0&&<p className="driver-cooldown" role="status">
+        Sending is temporarily paused on this device. If you already received an email, open that link.
+      </p>}
       {message&&<p className="driver-form-message" role="status">{message}</p>}
     </form>
   </section>;
@@ -172,6 +176,8 @@ export default function App(){
   const [authLoading,setAuthLoading]=useState(true);
   const [busyLogin,setBusyLogin]=useState(false);
   const [loginMessage,setLoginMessage]=useState('');
+  const [loginRetryAt,setLoginRetryAt]=useState(()=>readCooldownUntil());
+  const [loginClock,setLoginClock]=useState(()=>Date.now());
   const [memberships,setMemberships]=useState([]);
   const [organizationId,setOrganizationId]=useState('');
   const [profile,setProfile]=useState(null);
@@ -184,6 +190,13 @@ export default function App(){
   const [locating,setLocating]=useState(false);
   const [online,setOnline]=useState(typeof navigator==='undefined'||navigator.onLine!==false);
   const requestRef=useRef(0);
+  const loginCooldownSeconds=remainingCooldownSeconds(loginRetryAt,loginClock);
+
+  useEffect(()=>{
+    if(loginCooldownSeconds<=0)return undefined;
+    const handle=setInterval(()=>setLoginClock(Date.now()),1000);
+    return ()=>clearInterval(handle);
+  },[loginCooldownSeconds>0]);
 
   useEffect(()=>{
     const onOnline=()=>setOnline(navigator.onLine);
@@ -265,7 +278,7 @@ export default function App(){
   },[organizationId,user?.id,refresh]);
 
   async function signIn(email){
-    if(!supabase)return;
+    if(!supabase||busyLogin||Date.now()<loginRetryAt)return;
     setBusyLogin(true);setLoginMessage('');
     try {
       const {error:e}=await supabase.auth.signInWithOtp({
@@ -273,8 +286,20 @@ export default function App(){
         options:{emailRedirectTo:window.location.origin,shouldCreateUser:false}
       });
       if(e)throw e;
-      setLoginMessage('Check your email for your sign-in link.');
-    }catch(e){setLoginMessage(e?.message||'Sign-in unavailable.');}
+      const until=Date.now()+AUTH_SEND_COOLDOWN_MS;
+      saveCooldownUntil(until);
+      setLoginRetryAt(until);
+      setLoginClock(Date.now());
+      setLoginMessage('A sign-in link was requested. Check your inbox and spam folder before trying again.');
+    }catch(e){
+      if(rateLimitReached(e)){
+        const until=Date.now()+AUTH_RATE_LIMIT_BACKOFF_MS;
+        saveCooldownUntil(until);
+        setLoginRetryAt(until);
+        setLoginClock(Date.now());
+        setLoginMessage('Supabase has reached its email sending limit. Check for a link already sent. This device will pause retries for one hour; the server limit may reset later. Contact the administrator to enable custom SMTP.');
+      }else setLoginMessage(e?.message||'Sign-in unavailable.');
+    }
     finally{setBusyLogin(false);}
   }
 
@@ -320,7 +345,7 @@ export default function App(){
     <p>Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY for a verified staging project in Vercel preview settings. Never use a service-role key.</p>
   </div></PageShell>;
   if(authLoading)return <PageShell online={online}><div className="driver-access">Checking your secure session…</div></PageShell>;
-  if(!user)return <PageShell online={online}><Login onLogin={signIn} loading={busyLogin} message={loginMessage}/></PageShell>;
+  if(!user)return <PageShell online={online}><Login onLogin={signIn} loading={busyLogin} message={loginMessage} cooldownSeconds={loginCooldownSeconds}/></PageShell>;
   const selected=memberships.find(m=>m.organization_id===organizationId);
   return <PageShell online={online} user={user} onSignOut={signOut}>
     {!selected?<div className="driver-access"><UserRound size={32}/>
