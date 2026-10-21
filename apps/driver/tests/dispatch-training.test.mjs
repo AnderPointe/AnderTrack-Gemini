@@ -75,3 +75,31 @@ test('withdrawal only affects own request and never skips FIFO silently',()=>{
   assert.equal(queueHead(result.state).driver_id,QA_DRIVERS[1].id);
   assert.equal(s.requests.length,2);
 });
+
+test('Phase 6 competing dispatcher revisions reject stale second claim',()=>{
+  const original=createDispatchQaState();
+  const command={type:'claim',organizationId:QA_TENANT,jobId:'qa-job-1',
+    vehicleId:QA_VEHICLE,expectedRevision:original.revision};
+  const winner=dispatchQaStep(original,command);
+  assert.equal(winner.ok,true);
+  assert.equal(winner.state.revision,original.revision+1);
+  const loser=dispatchQaStep(winner.state,command);
+  assert.equal(loser.ok,false);
+  assert.match(loser.reason,/Stale dispatch revision/);
+  assert.equal(loser.state,winner.state);
+  assert.equal(winner.state.jobs.filter(j=>j.status==='offered').length,1);
+  assert.equal(original.jobs.filter(j=>j.status==='offered').length,0);
+});
+test('Phase 6 revision guard also rejects stale driver acceptance',()=>{
+  const claimed=attempt(createDispatchQaState(),'claim',{
+    jobId:'qa-job-1',vehicleId:QA_VEHICLE,expectedRevision:0});
+  assert.equal(claimed.ok,true);
+  const staleAccept=attempt(claimed.state,'accept',{
+    jobId:'qa-job-1',driverId:QA_DRIVERS[0].id,expectedRevision:0});
+  assert.equal(staleAccept.ok,false);
+  const freshAccept=attempt(claimed.state,'accept',{
+    jobId:'qa-job-1',driverId:QA_DRIVERS[0].id,
+    expectedRevision:claimed.state.revision});
+  assert.equal(freshAccept.ok,true);
+  assert.equal(freshAccept.state.jobs[0].status,'accepted');
+});
