@@ -1,8 +1,10 @@
 # AnderTrack — Vercel Web + Driver PWA Plan
 
-## Status: code prepared, Vercel connection blocked
+## Status: isolated staging projects live; production project unchanged
 
-Vercel's connected account returned **403 Forbidden** for the existing `andertrack` project under the team scope `flygeek88-5522` (team ID `team_iVqFZfXWdE2FWKHJW0DZdemY`). No project setting, deployment, Git connection, DNS record, domain, or environment variable has been modified.
+The former Vercel workspace access issue was resolved by targeting the user's new `mrianderson-8500` account. Two **staging-named** Vercel projects now exist: `andertrack-web-staging` and `andertrack-driver-staging`. Git branch previews are built there and the Supabase browser-safe staging environment variables are configured. Both use the existing **Andertrack Staging** Supabase project (`ofyfausfhinwgrfmapgc`); no old production projects, DNS or production database were changed.
+
+**Important:** Initial deployments to these separate staging-named projects were classified as `production` by Vercel; subsequent non-main branch previews have `target: null`. Only the preview deployments should be used for QA. Production `main` and all stacked PRs are unmerged.
 
 The current repository source of truth is `AnderPointe/AnderTrack-Gemini`. Phase 1 is draft PR #1; Phase 2 is draft PR #2. This feature is to be reviewed in a separate stacked PR on top of Phase 2. Keep every PR unmerged pending approval.
 
@@ -25,15 +27,15 @@ Shared backend: Supabase Auth, Postgres RLS, existing at_* secure RPCs
 
 **Why two projects?** Separate production/preview URLs, releases, mobile-focused UI, caching, and permission checks. The websites share a verified Supabase project but never share service-role secrets or direct assignment updates.
 
-## Access resolution required before linking
+## Current staging integration
 
-1. In ChatGPT, review the connected Vercel app and reauthorize it for the workspace that owns `andertrack`: `flygeek88-5522`. Vercel MCP's project read returned 403 and reported missing authorization for that scope.
-2. If the user owns that Vercel team, open Vercel team/account settings and authorize the integration for the intended team. A successful login to another personal account does not grant team access.
-3. Verify the existing Vercel `andertrack` project's **Git repository, production branch, deployed URL, environment variables by name only, project region, DNS and protection settings** before changing them.
-4. Confirm AnderPointe GitHub App repository access includes `AnderTrack-Gemini`.
-5. Verify both Preview environment values point to the same approved **staging** Supabase project, with matching publishable keys.
-6. Allow Vercel preview URLs in that staging Supabase project's Auth redirect allowlist.
-7. Only after approval, create/link a separate `andertrack-driver-staging` project rooted at `apps/driver`. Do not change the current `andertrack` production domain or repository until reviewed.
+- Website Vercel project: `andertrack-web-staging`, root directory `/`.
+- Driver Vercel project: `andertrack-driver-staging`, root directory `apps/driver`.
+- Repository: `AnderPointe/AnderTrack-Gemini`, using stacked feature branches for QA.
+- Vercel Preview and Production env targets *of the staging-named projects only* point to `ofyfausfhinwgrfmapgc` with the public publishable key. Existing live projects are untouched.
+- Auth Redirect URL allowlist **still requires manual verification**. Do not assume login will work based on a successful build.
+- Staging account `support@anderpointe.com` is a driver in the AnderPointe staging organization; initial state Class C, license unverified, availability offline.
+- Next safe milestone: nonpersistent training walkthrough and authenticated readiness checks in the Driver PWA. See `docs/PHASE4_DRIVER_STAGING_QA.md`.
 
 ## Safe deployment strategy
 
