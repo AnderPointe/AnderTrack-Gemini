@@ -58,3 +58,14 @@ accurately. Server events are coalesced before querying the driver's RLS-scoped
 assignment list. A visibility-aware 30-second polling fallback repairs missed
 updates. The status badge never claims a connection when the device is offline.
 Details and staging limitations: `../../docs/PHASE5_DISPATCH_STAGING_QA.md`.
+
+## Phase 6 — Two-tenant staging security verification
+
+The training **Dispatch QA Lab** now includes **Simulate competing dispatch claims**.
+It demonstrates optimistic revision rejection using fictional, local-only state.
+This does not validate actual concurrent Supabase requests.
+
+The separate staging database tests successfully verified two-tenant RLS isolation
+and active-vehicle collision trigger rejection using temporary, rolled-back
+fixtures. For evidence, limitations and exact repeatable SQL, see
+`../../docs/PHASE6_TENANT_RLS_RACE_QA.md` and `../../tests/sql/`.
