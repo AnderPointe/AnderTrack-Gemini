@@ -13,7 +13,9 @@ export default function DispatchTraining({onExit=()=>{}}){
   const driver=state.drivers.find(x=>x.id===driverId);
   const headDriver=state.drivers.find(x=>x.id===head?.driver_id);
   const ownJobs=visibleQaDriverJobs(state,driverId);
-  const claim=evaluateQaClaim(state,jobId,QA_VEHICLE);
+  const unassigned=state.jobs.filter(job=>job.status==='unassigned');
+  const selectedJobId=unassigned.some(job=>job.id===jobId)?jobId:(unassigned[0]?.id||'');
+  const claim=evaluateQaClaim(state,selectedJobId,QA_VEHICLE);
   function step(action){
     const result=dispatchQaStep(state,{...action,organizationId:QA_TENANT});
     if(result.ok)setState(result.state);
@@ -62,14 +64,14 @@ export default function DispatchTraining({onExit=()=>{}}){
           A blocked head cannot be silently skipped.</p>:
           <p className="at-qa-hint">No queued requests. Reset to restore fictional queue.</p>}
         <label className="at-qa-select-label" htmlFor="qa-load">Sample unassigned load</label>
-        <select id="qa-load" className="at-qa-select" value={jobId}
+        <select id="qa-load" className="at-qa-select" value={selectedJobId}
           onChange={e=>setJobId(e.target.value)}>
           {state.jobs.filter(j=>j.status==='unassigned').map(j=><option key={j.id} value={j.id}>{j.reference}</option>)}
           {!state.jobs.some(j=>j.status==='unassigned')&&<option value="">No unassigned loads</option>}
         </select>
         <p className="at-qa-hint"><Truck size={14}/> QA Cargo Van · Class C · fictional, enabled</p>
         <button type="button" className="driver-primary" disabled={!claim.ok}
-          onClick={()=>step({type:'claim',jobId,vehicleId:QA_VEHICLE})}>
+          onClick={()=>step({type:'claim',jobId:selectedJobId,vehicleId:QA_VEHICLE})}>
           <ArrowRight size={16}/> Offer to FIFO head
         </button>
         {!claim.ok&&<p className="at-qa-blocked"><ShieldAlert size={16}/>{claim.reason}</p>}

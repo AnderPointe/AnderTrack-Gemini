@@ -7,6 +7,7 @@ import {
 import {supabase,configured} from './supabase.js';
 import TrainingMode from './TrainingMode.jsx';
 import DriverReadiness from './DriverReadiness.jsx';
+import {DRIVER_POLL_MS,DRIVER_REFRESH_DEBOUNCE_MS,normalizeRealtimeStatus,describeDriverSync} from './sync-feedback.js';
 import {readCooldownUntil,saveCooldownUntil,rateLimitReached,remainingCooldownSeconds,formatCooldownSeconds,AUTH_SEND_COOLDOWN_MS,AUTH_RATE_LIMIT_BACKOFF_MS} from './auth-feedback.js';
 import {
   assignmentsForDriver,classifyLegacyAssignment,driverAssignmentAction,
@@ -113,7 +114,7 @@ function DriverOrderCard({job,userId,verified,perform,busy}) {
 }
 
 function DriverDashboard({user,membership,profile,jobs,loading,error,notice,onRefresh,onAction,actionId,
-  onMembershipChange,memberships,location,locating,onLocate,online}) {
+  onMembershipChange,memberships,location,locating,onLocate,online,syncState,lastRefreshAt}) {
   const [tab,setTab]=useState('offers');
   const grouped=useMemo(()=>groupDriverAssignments(jobs),[jobs]);
   const list=grouped[tab]||[];
@@ -133,9 +134,15 @@ function DriverDashboard({user,membership,profile,jobs,loading,error,notice,onRe
           {memberships.map(m=><option key={m.organization_id} value={m.organization_id}>{m.organization_id.slice(0,8)}… · Driver</option>)}
         </select><ChevronDown size={16}/></span>
       </label>
-      <button type="button" className="driver-secondary" onClick={onRefresh} disabled={loading}>
-        <RefreshCw size={16} className={loading?'spin':''}/> Refresh
-      </button>
+      <div className="driver-sync-controls">
+        <span className={'driver-sync-state '+describeDriverSync(syncState,online).level} role="status">
+          <Activity size={14}/> {describeDriverSync(syncState,online).label}
+          {lastRefreshAt&&<small>Updated {new Date(lastRefreshAt).toLocaleTimeString()}</small>}
+        </span>
+        <button type="button" className="driver-secondary" onClick={onRefresh} disabled={loading}>
+          <RefreshCw size={16} className={loading?'spin':''}/> Refresh
+        </button>
+      </div>
     </div>
     <div className="driver-kpi-grid">
       <div className="driver-kpi"><span><Package size={17}/> New offers</span><strong>{grouped.offers.length}</strong></div>
@@ -184,6 +191,8 @@ export default function App(){
   const [user,setUser]=useState(null);
   const [authLoading,setAuthLoading]=useState(true);
   const [busyLogin,setBusyLogin]=useState(false);
+  const [syncState,setSyncState]=useState('disconnected');
+  const [lastRefreshAt,setLastRefreshAt]=useState(null);
   const [loginMessage,setLoginMessage]=useState('');
   const [trainingMode,setTrainingMode]=useState(false);
   const [loginRetryAt,setLoginRetryAt]=useState(()=>readCooldownUntil());
@@ -223,7 +232,11 @@ export default function App(){
     }).catch(()=>{if(live)setAuthLoading(false);});
     const {data:{subscription}}=supabase.auth.onAuthStateChange((event,session)=>{
       if(!live)return;
-      if(event==='SIGNED_OUT'){setUser(null);setMemberships([]);setOrganizationId('');setJobs([]);setProfile(null);}
+      if(event==='SIGNED_OUT'){
+        requestRef.current++;
+        setUser(null);setMemberships([]);setOrganizationId('');setJobs([]);setProfile(null);
+        setSyncState('disconnected');setLastRefreshAt(null);
+      }
       else if(session?.user){setUser(session.user);setAuthLoading(false);}
     });
     return ()=>{live=false;subscription.unsubscribe();};
@@ -264,6 +277,7 @@ export default function App(){
       if(generation!==requestRef.current)return;
       setJobs(assignmentsForDriver(a.data||[],organizationId,user.id));
       setProfile(p.data||null);
+      setLastRefreshAt(Date.now());
     } catch(e){
       if(generation===requestRef.current){setError(e?.message||'Could not load driver records');setJobs([]);setProfile(null);}
     } finally {if(generation===requestRef.current)setLoading(false);}
@@ -272,19 +286,47 @@ export default function App(){
   useEffect(()=>{
     requestRef.current++;
     setJobs([]);setProfile(null);setLocation(null);setNotice('');
+    setSyncState('disconnected');setLastRefreshAt(null);
     if(!organizationId)return;
     void refresh();
   },[organizationId,refresh]);
 
   useEffect(()=>{
-    if(!supabase||!organizationId||!user?.id)return;
+    if(!supabase||!organizationId||!user?.id)return undefined;
+    let active=true;
+    let refreshTimeout=null;
+    setSyncState('connecting');
+    // Coalesce bursts of changes; always query own rows through RLS after a notification.
+    const scheduleRefresh=()=>{
+      if(!active||!navigator.onLine)return;
+      clearTimeout(refreshTimeout);
+      refreshTimeout=setTimeout(()=>{if(active)void refresh();},DRIVER_REFRESH_DEBOUNCE_MS);
+    };
     const channel=supabase.channel('driver-assignments-'+organizationId+'-'+user.id)
       .on('postgres_changes',{event:'*',schema:'public',table:'at_assignments',
         filter:'organization_id=eq.'+organizationId},payload=>{
-          // RLS secures row visibility. Always re-query own rows before rendering.
-          if(payload)void refresh();
-      }).subscribe();
-    return ()=>{void supabase.removeChannel(channel);};
+          if(payload)scheduleRefresh();
+      }).subscribe(status=>{
+        if(!active)return;
+        setSyncState(normalizeRealtimeStatus(status));
+        if(status==='SUBSCRIBED')scheduleRefresh();
+      });
+    // Realtime is best effort; a visibility-gated poll repairs missed or dropped updates.
+    const poll=setInterval(()=>{
+      if(active&&navigator.onLine&&document.visibilityState==='visible')void refresh();
+    },DRIVER_POLL_MS);
+    const onVisibility=()=>{if(document.visibilityState==='visible')scheduleRefresh();};
+    const onOnline=()=>scheduleRefresh();
+    document.addEventListener('visibilitychange',onVisibility);
+    window.addEventListener('online',onOnline);
+    return ()=>{
+      active=false;
+      clearTimeout(refreshTimeout);
+      clearInterval(poll);
+      document.removeEventListener('visibilitychange',onVisibility);
+      window.removeEventListener('online',onOnline);
+      void supabase.removeChannel(channel);
+    };
   },[organizationId,user?.id,refresh]);
 
   async function signIn(email){
@@ -373,6 +415,7 @@ export default function App(){
         onMembershipChange={setOrganizationId} profile={profile} jobs={jobs}
         loading={loading} error={error} notice={notice} onRefresh={refresh}
         onAction={action} actionId={actionId} location={location}
-        locating={locating} onLocate={locate} online={online}/>}
+        locating={locating} onLocate={locate} online={online}
+        syncState={syncState} lastRefreshAt={lastRefreshAt}/>}
   </PageShell>;
 }
