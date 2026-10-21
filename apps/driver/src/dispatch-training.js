@@ -70,6 +70,10 @@ function rejected(state,reason){return {state,ok:false,reason};}
 export function dispatchQaStep(state,action){
   if(!validState(state)||!action||action.organizationId!==QA_TENANT)
     return rejected(state,'Wrong tenant or invalid training state');
+  // Training-only optimistic revision gate models a competing dispatch request.
+  // Database concurrency must still be tested with two real staging sessions.
+  if(action.expectedRevision!==undefined && action.expectedRevision!==state.revision)
+    return rejected(state,'Stale dispatch revision. Refresh before retrying.');
   if(action.type==='claim'){
     const check=evaluateQaClaim(state,action.jobId,action.vehicleId);
     if(!check.ok)return rejected(state,check.reason);

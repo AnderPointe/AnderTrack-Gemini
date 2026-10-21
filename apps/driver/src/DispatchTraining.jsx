@@ -17,9 +17,23 @@ export default function DispatchTraining({onExit=()=>{}}){
   const selectedJobId=unassigned.some(job=>job.id===jobId)?jobId:(unassigned[0]?.id||'');
   const claim=evaluateQaClaim(state,selectedJobId,QA_VEHICLE);
   function step(action){
-    const result=dispatchQaStep(state,{...action,organizationId:QA_TENANT});
+    const result=dispatchQaStep(state,{...action,organizationId:QA_TENANT,expectedRevision:state.revision});
     if(result.ok)setState(result.state);
     setNotice(result.reason);
+  }
+  function compete(){
+    if(!claim.ok)return;
+    const first={type:'claim',organizationId:QA_TENANT,jobId:selectedJobId,vehicleId:QA_VEHICLE,
+      expectedRevision:state.revision};
+    const winner=dispatchQaStep(state,first);
+    if(!winner.ok){setNotice(winner.reason);return;}
+    const stale=dispatchQaStep(winner.state,first);
+    setState(winner.state);
+    setNotice(
+      'Two fictional dispatchers submitted the same revision. First claim accepted; '+
+      (stale.ok?'WARNING: duplicate claim succeeded.':'second rejected: '+stale.reason)+
+      ' This is not a real database concurrency test.'
+    );
   }
   function reset(){
     setState(createDispatchQaState());setDriverId(QA_DRIVERS[0].id);
@@ -40,7 +54,7 @@ export default function DispatchTraining({onExit=()=>{}}){
       </button>
     </div>
     <header className="at-qa-header">
-      <div><span className="driver-eyebrow"><Radio size={14}/> PHASE 5 · LOCAL QUEUE SIMULATION</span>
+      <div><span className="driver-eyebrow"><Radio size={14}/> PHASE 6 · LOCAL QUEUE & STALE-REVISION QA</span>
         <h1>Dispatch ↔ Driver QA Lab</h1>
         <p>Follow FIFO queue matching, qualification interlocks, sample offer decisions, and an immediate
           shared-state view of dispatch events. A real backend is not used in this exercise.</p>
@@ -73,6 +87,10 @@ export default function DispatchTraining({onExit=()=>{}}){
         <button type="button" className="driver-primary" disabled={!claim.ok}
           onClick={()=>step({type:'claim',jobId:selectedJobId,vehicleId:QA_VEHICLE})}>
           <ArrowRight size={16}/> Offer to FIFO head
+        </button>
+        <button className="driver-secondary" type="button" disabled={!claim.ok}
+          onClick={compete}>
+          <RefreshCcw size={16}/> Simulate competing dispatch claims
         </button>
         {!claim.ok&&<p className="at-qa-blocked"><ShieldAlert size={16}/>{claim.reason}</p>}
       </section>
