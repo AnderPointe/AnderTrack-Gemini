@@ -1,10 +1,12 @@
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {
   Activity,ArrowRight,CheckCircle2,ChevronDown,Clock3,Compass,ExternalLink,
-  LockKeyhole,LogOut,MapPin,Navigation,Package,RefreshCw,Route,ShieldCheck,
+  FlaskConical,LockKeyhole,LogOut,MapPin,Navigation,Package,RefreshCw,Route,ShieldCheck,
   Truck,UserRound,Wifi,WifiOff,XCircle,
 } from 'lucide-react';
 import {supabase,configured} from './supabase.js';
+import TrainingMode from './TrainingMode.jsx';
+import DriverReadiness from './DriverReadiness.jsx';
 import {readCooldownUntil,saveCooldownUntil,rateLimitReached,remainingCooldownSeconds,formatCooldownSeconds,AUTH_SEND_COOLDOWN_MS,AUTH_RATE_LIMIT_BACKOFF_MS} from './auth-feedback.js';
 import {
   assignmentsForDriver,classifyLegacyAssignment,driverAssignmentAction,
@@ -36,7 +38,7 @@ function PageShell({children,user,onSignOut,online}) {
   </div>;
 }
 
-function Login({onLogin,loading,message,cooldownSeconds=0}) {
+function Login({onLogin,loading,message,cooldownSeconds=0,onTraining=()=>{}}) {
   const [email,setEmail]=useState('');
   return <section className="driver-auth">
     <div className="driver-auth-icon"><ShieldCheck size={31}/></div>
@@ -56,6 +58,12 @@ function Login({onLogin,loading,message,cooldownSeconds=0}) {
       </p>}
       {message&&<p className="driver-form-message" role="status">{message}</p>}
     </form>
+    <div className="at-training-launch">
+      <p>No login email available? You can explore a fully fictional workflow instead.</p>
+      <button type="button" className="driver-secondary" onClick={onTraining}>
+        <FlaskConical size={16}/> Explore training simulation
+      </button>
+    </div>
   </section>;
 }
 
@@ -105,7 +113,7 @@ function DriverOrderCard({job,userId,verified,perform,busy}) {
 }
 
 function DriverDashboard({user,membership,profile,jobs,loading,error,notice,onRefresh,onAction,actionId,
-  onMembershipChange,memberships,location,locating,onLocate}) {
+  onMembershipChange,memberships,location,locating,onLocate,online}) {
   const [tab,setTab]=useState('offers');
   const grouped=useMemo(()=>groupDriverAssignments(jobs),[jobs]);
   const list=grouped[tab]||[];
@@ -134,6 +142,7 @@ function DriverDashboard({user,membership,profile,jobs,loading,error,notice,onRe
       <div className="driver-kpi"><span><Route size={17}/> Active jobs</span><strong>{grouped.active.length}</strong></div>
       <div className="driver-kpi"><span><ShieldCheck size={17}/> License</span><strong className="driver-kpi-word">{profile?.license_verified?'Verified':'Not verified'}</strong></div>
     </div>
+    <DriverReadiness membership={membership} profile={profile} online={online} jobCount={jobs.length}/>
     <section className="driver-section">
       <div className="driver-section-title"><div><span className="driver-eyebrow">DISPATCH CENTER</span><h2>My assignments</h2></div>
         <span className="driver-count">{jobs.length} visible</span>
@@ -176,6 +185,7 @@ export default function App(){
   const [authLoading,setAuthLoading]=useState(true);
   const [busyLogin,setBusyLogin]=useState(false);
   const [loginMessage,setLoginMessage]=useState('');
+  const [trainingMode,setTrainingMode]=useState(false);
   const [loginRetryAt,setLoginRetryAt]=useState(()=>readCooldownUntil());
   const [loginClock,setLoginClock]=useState(()=>Date.now());
   const [memberships,setMemberships]=useState([]);
@@ -345,7 +355,12 @@ export default function App(){
     <p>Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY for a verified staging project in Vercel preview settings. Never use a service-role key.</p>
   </div></PageShell>;
   if(authLoading)return <PageShell online={online}><div className="driver-access">Checking your secure session…</div></PageShell>;
-  if(!user)return <PageShell online={online}><Login onLogin={signIn} loading={busyLogin} message={loginMessage} cooldownSeconds={loginCooldownSeconds}/></PageShell>;
+  if(!user){
+    if(trainingMode)return <PageShell online={online}><TrainingMode onExit={()=>setTrainingMode(false)}/></PageShell>;
+    return <PageShell online={online}><Login onLogin={signIn} loading={busyLogin}
+      message={loginMessage} cooldownSeconds={loginCooldownSeconds}
+      onTraining={()=>setTrainingMode(true)}/></PageShell>;
+  }
   const selected=memberships.find(m=>m.organization_id===organizationId);
   return <PageShell online={online} user={user} onSignOut={signOut}>
     {!selected?<div className="driver-access"><UserRound size={32}/>
@@ -358,6 +373,6 @@ export default function App(){
         onMembershipChange={setOrganizationId} profile={profile} jobs={jobs}
         loading={loading} error={error} notice={notice} onRefresh={refresh}
         onAction={action} actionId={actionId} location={location}
-        locating={locating} onLocate={locate}/>}
+        locating={locating} onLocate={locate} online={online}/>}
   </PageShell>;
 }

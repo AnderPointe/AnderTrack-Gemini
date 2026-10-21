@@ -138,3 +138,49 @@ button:disabled{opacity:.45;cursor:not-allowed;filter:none}
  .driver-auth h1{font-size:27px}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important}}
+
+/* Training walkthrough: intentionally isolated from authenticated driver data. */
+.at-training-root{display:grid;gap:20px}
+.at-training-alert{display:flex;align-items:flex-start;gap:14px;padding:19px;border:1px solid #a37a3a;
+  border-radius:14px;background:#4c341f3c;color:#ffd49a}
+.at-training-alert strong{font-size:12px;letter-spacing:.07em}
+.at-training-alert p{font-size:12px;line-height:1.6;margin:6px 0 0;color:#efcfa9}
+.at-training-alert svg{flex-shrink:0}
+.at-training-header{display:flex;justify-content:space-between;gap:24px;align-items:center;padding:18px 6px}
+.at-training-header h1{font-size:30px;line-height:1.1;letter-spacing:-.035em;margin:10px 0}
+.at-training-header p{font-size:13px;max-width:680px;color:var(--muted);line-height:1.6;margin:0}
+.at-training-truck{color:var(--teal);flex-shrink:0}
+.at-training-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+.at-training-jobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.at-training-job{align-content:start}
+.at-training-route{display:grid;gap:9px;padding:10px 0;color:#b2c5cf;font-size:12px}
+.at-training-route span{display:flex;align-items:center;gap:9px}
+.at-training-feedback{color:#a8ddcf;line-height:1.6;font-size:12px}
+.at-training-audit ul{padding:0;list-style:none;display:grid;gap:9px}
+.at-training-audit li{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:11px;
+  border-top:1px solid #2d4454;padding:10px 0}
+.at-training-audit li>svg{color:#6adfba}
+.at-training-audit li span{display:flex;align-items:center;gap:5px;color:#a8bcc8}
+.at-training-disclaimer{color:#849dac;font-size:11px;line-height:1.6}
+.at-training-launch{margin-top:23px;padding:18px;border-radius:12px;border:1px dashed #3d6571;
+  background:#21405242}
+.at-training-launch p{font-size:12px;margin:0 0 11px;color:#acc5cf}
+.driver-cooldown{color:#fac991!important;font-size:12px!important}
+.at-readiness-intro{color:var(--muted);line-height:1.6;font-size:12px;max-width:700px}
+.at-readiness-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0}
+.at-readiness-check{border:1px solid #395061;border-radius:10px;padding:12px;display:flex;align-items:flex-start;gap:10px}
+.at-readiness-check svg{flex-shrink:0;color:#e8ac64}
+.at-readiness-check.passed svg{color:#5de3c2}
+.at-readiness-check div{display:grid;gap:5px}
+.at-readiness-check strong{font-size:12px}
+.at-readiness-check span{color:#9aafbe;line-height:1.5;font-size:11px}
+.at-readiness-footer{font-size:12px;line-height:1.6;color:#dfb177;
+  display:flex;gap:10px;align-items:flex-start}
+.at-readiness-footer svg{flex-shrink:0;margin-top:2px}
+@media(max-width:720px){
+ .at-training-jobs,.at-readiness-grid{grid-template-columns:1fr}
+ .at-training-header h1{font-size:25px}
+ .at-training-truck{display:none}
+ .at-training-alert{padding:14px}
+ .at-training-root{gap:15px}
+}
