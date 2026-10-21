@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import {freshTrainingJobs,trainingActionsFor,transitionTrainingList} from './training.js';
 import {formatAssignmentStatus} from './driver-logic.js';
+import DispatchTraining from './DispatchTraining.jsx';
 
 /**
  * Isolated UI-only simulation: intentionally no Supabase client, real auth,
@@ -12,6 +13,7 @@ import {formatAssignmentStatus} from './driver-logic.js';
  */
 export default function TrainingMode({onExit=()=>{}}){
   const [jobs,setJobs]=useState(freshTrainingJobs);
+  const [showDispatch,setShowDispatch]=useState(false);
   const [feedback,setFeedback]=useState('Use a sample offer to practice the dispatch-to-driver lifecycle.');
   const [history,setHistory]=useState([]);
   function act(job,action){
@@ -33,6 +35,7 @@ export default function TrainingMode({onExit=()=>{}}){
   }
   const offers=jobs.filter(j=>j.status==='offered').length;
   const started=jobs.filter(j=>['accepted','at_pickup','picked_up','in_transit'].includes(j.status)).length;
+  if(showDispatch)return <DispatchTraining onExit={()=>setShowDispatch(false)}/>;
   return <div className="at-training-root" data-testid="training-mode">
     <div className="at-training-alert" role="note">
       <FlaskConical size={23}/>
@@ -56,6 +59,9 @@ export default function TrainingMode({onExit=()=>{}}){
       <button className="driver-secondary" type="button" onClick={()=>{
         setJobs(freshTrainingJobs());setHistory([]);setFeedback('Training state reset. This affects no real assignments.');
       }}><RefreshCcw size={16}/> Reset simulation</button>
+      <button className="driver-primary" type="button" onClick={()=>setShowDispatch(true)}>
+        <ArrowRight size={16}/> Open Dispatch QA Lab
+      </button>
     </div>
     <div className="driver-kpi-grid">
       <div className="driver-kpi"><span><Package size={17}/> Fictional offers</span><strong>{offers}</strong></div>
