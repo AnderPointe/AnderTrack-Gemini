@@ -1,125 +1,108 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Truck, Package, CarFront, UtensilsCrossed, Trash2, Home, BriefcaseBusiness, Wallet, MessageCircle, UserRound, ArrowLeft, ArrowRight, MapPin, Check, LogOut, RefreshCw, Navigation, ShieldCheck } from 'lucide-react';
-import { supabase, configured as supabaseConfigured } from '../supabase.js';
-import { DRIVER_SERVICES, NEXT_ACTION, STATE_LABEL, money, nextJobState, sampleJobs } from './logic.js';
+import React,{useEffect,useRef,useState} from 'react';
+import {Truck,Package,CarFront,UtensilsCrossed,Trash2,Home,BriefcaseBusiness,Wallet,MessageCircle,UserRound,ArrowLeft,ArrowRight,MapPin,Check,LogOut,RefreshCw,Navigation,ShieldCheck,Users,Radio} from 'lucide-react';
+import {supabase,configured} from '../supabase.js';
+import {DRIVER_SERVICES,NEXT_ACTION,STATE_LABEL,money,nextJobState,sampleJobs} from './logic.js';
+import {CONNECTED_STAGING,NEXT_LIVE_ACTION,SERVICE_NAMES,ACTIVE_STATES,freshLocation} from '../connected/operations.js';
+import {useOperations} from '../connected/useOperations.js';
+import {useDriverLocation} from '../connected/useDriverLocation.js';
+import Messenger from '../connected/Messenger.jsx';
+import QueueView from '../connected/QueueView.jsx';
+import DriverLiveMap from '../connected/DriverLiveMap.jsx';
 import './universal-driver.css';
 
-const icons = { truck: Truck, package: Package, van: Truck, food: UtensilsCrossed, car: CarFront, trash: Trash2 };
-const tabs = [{ id: 'home', label: 'Home', icon: Home }, { id: 'jobs', label: 'Jobs', icon: BriefcaseBusiness }, { id: 'earnings', label: 'Earnings', icon: Wallet }, { id: 'messages', label: 'Messages', icon: MessageCircle }, { id: 'account', label: 'Account', icon: UserRound }];
+const icons={truck:Truck,package:Package,van:Truck,food:UtensilsCrossed,car:CarFront,trash:Trash2};
+const tabs=[{id:'home',label:'Home',icon:Home},{id:'jobs',label:'Jobs',icon:BriefcaseBusiness},{id:'queue',label:'Queue',icon:Users},{id:'earnings',label:'Earnings',icon:Wallet},{id:'messages',label:'Messages',icon:MessageCircle},{id:'account',label:'Account',icon:UserRound}];
+const pretty=value=>STATE_LABEL[value]||String(value||'Unknown').replaceAll('_',' ');
+function Brand(){return <a className="ud-brand" href="/universal"><span aria-hidden="true"><b>A</b><i>T</i></span><div>ANDERTRACK<small>UNIVERSAL DRIVER APP</small></div></a>;}
 
-function Brand() { return <a className="ud-brand" href="/universal"><span aria-hidden="true"><b>A</b><i>T</i></span><div>ANDERTRACK<small>UNIVERSAL DRIVER APP</small></div></a>; }
-function RoutePreview({ service }) {
-  return <div className="ud-map" aria-label="Illustrative route, not live GPS">
-    <svg viewBox="0 0 420 220" role="img" aria-label="Sample route illustration">
-      <defs><pattern id="ud-streets" width="46" height="38" patternTransform="rotate(-18)" patternUnits="userSpaceOnUse"><path d="M 0 0 H 46 V 38 H 0 Z" fill="none" stroke="#333" strokeWidth="2"/><path d="M 23 0 V 38" stroke="#222"/></pattern></defs>
-      <rect width="420" height="220" fill="#111716"/><rect width="420" height="220" fill="url(#ud-streets)"/>
-      <path d="M54 168 L104 168 L104 110 L230 110 L230 63 L357 63" fill="none" stroke="#16b5ab" strokeWidth="6" strokeLinejoin="round"/>
-      <circle cx="54" cy="168" r="9" fill="#14b8ad" stroke="white" strokeWidth="3"/><circle cx="357" cy="63" r="10" fill="#ff8a18" stroke="white" strokeWidth="3"/>
-      <rect x="207" y="99" width="34" height="23" rx="5" fill="#ff8a18"/><circle cx="214" cy="123" r="4" fill="white"/><circle cx="235" cy="123" r="4" fill="white"/>
-      <text x="25" y="198" fill="white" fontSize="12">Pickup</text><text x="312" y="40" fill="white" fontSize="12">Destination</text>
-    </svg><span className="ud-map-note">{service.division} · Sample route</span>
-  </div>;
-}
+export default function UniversalDriver(){
+  const [demo,setDemo]=useState(new URLSearchParams(window.location.search).get('demo')==='1');
+  const [session,setSession]=useState(null),[ready,setReady]=useState(false),[email,setEmail]=useState(''),[password,setPassword]=useState('');
+  const [error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[tab,setTab]=useState('home');
+  const [serviceId,setServiceId]=useState('otr'),[profiles,setProfiles]=useState([]),[orgId,setOrgId]=useState(''),[activeId,setActiveId]=useState('');
+  const [demoJobs,setDemoJobs]=useState(sampleJobs),[demoOnline,setDemoOnline]=useState(false),[filter,setFilter]=useState('active'),[query,setQuery]=useState('');
+  const [demoQueued,setDemoQueued]=useState(false),[retryAt,setRetryAt]=useState(0),[clock,setClock]=useState(Date.now());
+  const identity=useRef(''),epoch=useRef(0);const user=session?.user?.id||'';
+  const live=useOperations(supabase,orgId,user,false,!demo&&Boolean(session));
+  const location=useDriverLocation(live.api,orgId,user,!demo&&Boolean(session)&&CONNECTED_STAGING);
+  const profile=live.drivers.find(p=>p.user_id===user)||profiles.find(p=>p.organization_id===orgId);
+  const jobs=demo?demoJobs:live.assignments;
+  const active=jobs.find(job=>job.id===activeId);
+  const service=DRIVER_SERVICES.find(s=>s.id===(active?.service_id||serviceId));
+  const titleService=service?.label||'Unclassified assignment';
+  const online=demo?demoOnline:location.sharing;
+  const approvals=live.access.filter(a=>a.driver_user_id===user&&a.enabled).map(a=>a.service_id);
+  const demoQueue=[{id:'demo-a',driver_user_id:'sample-driver-a',display_name:'Sample Driver A',service_id:'courier',queue_number:'101',requested_at:new Date(clock-120000).toISOString(),position:1},...(demoQueued?[{id:'demo-you',driver_user_id:'demo-user',display_name:'Ivan Anderson',service_id:serviceId,queue_number:'102',requested_at:new Date(clock).toISOString(),position:2}]:[])];
+  const queue=demo?demoQueue:live.queue;
+  const complete=jobs.filter(j=>demo?j.status==='completed':j.status==='delivered');
+  const visible=jobs.filter(j=>(serviceId==='all'||j.service_id===serviceId)&&(filter==='all'||(filter==='history'?(demo?j.status==='completed':['delivered','cancelled'].includes(j.status)):(demo?j.status!=='completed':ACTIVE_STATES.includes(j.status))))).filter(j=>[j.reference,j.pickup,j.pickup_address,j.destination,j.dropoff_address].join(' ').toLowerCase().includes(query.toLowerCase()));
 
-export default function UniversalDriver() {
-  const [demo, setDemo] = useState(new URLSearchParams(window.location.search).get('demo') === '1');
-  const [session, setSession] = useState(null);
-  const [ready, setReady] = useState(false);
-  const [email, setEmail] = useState(''); const [password, setPassword] = useState('');
-  const [error, setError] = useState(''); const [notice, setNotice] = useState(''); const [busy, setBusy] = useState(false);
-  const [tab, setTab] = useState('home'); const [serviceId, setServiceId] = useState('otr');
-  const [online, setOnline] = useState(false); const [profiles, setProfiles] = useState([]);
-  const [orgId, setOrgId] = useState(''); const [jobs, setJobs] = useState([]); const [activeId, setActiveId] = useState('');
-  const scope = useRef(0);
-  const liveAllowed = supabaseConfigured && import.meta.env.VITE_DRIVER_TEST_WORKSPACE === 'true' && import.meta.env.VITE_SUPABASE_URL === 'https://ofyfausfhinwgrfmapgc.supabase.co';
-  const service = DRIVER_SERVICES.find(item => item.id === serviceId) || DRIVER_SERVICES[1];
-  const active = jobs.find(job => job.id === activeId);
-  const profile = profiles.find(item => item.organization_id === orgId);
+  useEffect(()=>{const id=setInterval(()=>setClock(Date.now()),1000);return()=>clearInterval(id);},[]);
+  useEffect(()=>{
+    if(demo||!configured||!CONNECTED_STAGING){setReady(true);return;}
+    let mounted=true;
+    const apply=next=>{if(!mounted)return;const nextId=next?.user?.id||'';if(identity.current!==nextId){identity.current=nextId;epoch.current++;setProfiles([]);setOrgId('');setActiveId('');setError('');setBusy(false);}setSession(next);setReady(true);};
+    supabase.auth.getSession().then(({data,error:e})=>{if(e&&mounted)setError(e.message);apply(data?.session||null);}).catch(e=>{if(mounted){setError(e.message);setReady(true);}});
+    const {data}=supabase.auth.onAuthStateChange((_event,next)=>apply(next));
+    return()=>{mounted=false;epoch.current++;data.subscription.unsubscribe();};
+  },[demo]);
+  useEffect(()=>{
+    if(demo||!user||!CONNECTED_STAGING)return;let mounted=true;
+    supabase.from('at_driver_profiles').select('organization_id,display_name,license_class,license_verified,availability').eq('user_id',user).then(({data,error:e})=>{if(!mounted)return;if(e)setError(e.message);else{setProfiles(data||[]);setOrgId(data?.[0]?.organization_id||'');}}).catch(e=>{if(mounted)setError(e.message);});
+    return()=>{mounted=false;};
+  },[demo,user]);
+  async function run(action){setBusy(true);setError('');setNotice('');const scope=epoch.current;try{await action();}catch(e){if(scope===epoch.current)setError(e.message||'Unable to complete the request.');}finally{if(scope===epoch.current)setBusy(false);}}
+  async function signIn(event){event.preventDefault();await run(async()=>{const {error:e}=await supabase.auth.signInWithPassword({email:email.trim(),password});if(e)throw e;setPassword('');});}
+  async function sendLink(){if(!email.trim()||clock<retryAt)return;setRetryAt(Date.now()+60000);await run(async()=>{const {error:e}=await supabase.auth.signInWithOtp({email:email.trim(),options:{shouldCreateUser:false,emailRedirectTo:window.location.origin+'/universal'}});if(e)throw e;setNotice('Check your email for a staging sign-in link.');});}
+  async function toggleOnline(){if(demo){setDemoOnline(!demoOnline);setNotice('Demo availability only. Your device location is not requested.');return;}await run(async()=>{if(location.sharing)await location.stop();else await location.start();await live.refresh();});}
+  async function progress(job,decline=false){await run(async()=>{
+    if(demo){setDemoJobs(rows=>rows.map(j=>j.id===job.id?{...j,status:nextJobState(j.status)||j.status}:j));return;}
+    if(job.status==='offered'){if(!decline&&!location.sharing)throw new Error('Share your location and go online before accepting a task.');await live.api.rpc('at_respond_assignment',{p_assignment_id:job.id,p_accept:!decline});}
+    else {const next=NEXT_LIVE_ACTION[job.status];if(!next)throw new Error('Use the proof-of-delivery workflow to complete this task.');await live.api.rpc('at_advance_assignment',{p_assignment_id:job.id,p_next_status:next[0]});}
+    await live.refresh();setNotice(decline?'Offer declined and returned to dispatch.':'Task progress saved.');
+  });}
+  function openJob(job){setActiveId(job.id);setTab('jobs');setNotice('');}
+  const ownRemote=live.locations.find(row=>row.driver_user_id===user);
+  const locationFresh=demo||Boolean(location.sharing&&freshLocation(ownRemote,clock));
+  const canJoin=demo?demoOnline:Boolean(locationFresh&&profile?.license_verified&&approvals.includes(serviceId));
+  const queueReason=demo?'Go online in the demo to join the sample queue.':!locationFresh?'Share a fresh GPS location and go online first.':!profile?.license_verified?'Dispatch must verify your driver license.':!approvals.includes(serviceId)?'Dispatch must approve you for the selected service.':'';
+  async function joinQueue(){if(demo){setDemoQueued(true);return;}await run(async()=>{await live.api.rpc('at_join_driver_queue',{p_organization_id:orgId,p_service_id:serviceId});await live.refresh();setNotice('Your request is in the shared dispatch queue.');});}
+  async function leaveQueue(){if(demo){setDemoQueued(false);return;}await run(async()=>{await live.api.rpc('at_cancel_dispatch',{p_organization_id:orgId});await live.refresh();});}
+  const currentError=error||live.error||location.error;
+  const currentPosition=location.sharing?(location.position||(freshLocation(ownRemote,clock)?ownRemote:null)):null;
+  const map=()=>currentPosition?<><DriverLiveMap position={currentPosition}/><p className="ud-muted">Your GPS location · destination routing opens in navigation.</p></>:<div className="connected-location"><strong><Radio size={17}/> {demo?'Sample workflow':'Location sharing is off'}</strong><small>{demo?'This demo does not request or transmit location.':'Tap Share location & go online to make your position visible to dispatch.'}</small></div>;
 
-  useEffect(() => {
-    if (demo) { setJobs(sampleJobs()); setReady(true); return; }
-    if (!liveAllowed) { setReady(true); return; }
-    let mounted = true;
-    supabase.auth.getSession().then(({ data, error: e }) => { if (mounted) { setSession(data?.session || null); setReady(true); if (e) setError(e.message); } }).catch(e => { if (mounted) { setError(e.message); setReady(true); } });
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => { if (mounted) { scope.current++; setSession(next); setProfiles([]); setOrgId(''); setJobs([]); setActiveId(''); setOnline(false); } });
-    return () => { mounted = false; scope.current++; data.subscription.unsubscribe(); };
-  }, [demo, liveAllowed]);
-
-  useEffect(() => {
-    if (demo || !session || !liveAllowed) return;
-    let mounted = true;
-    supabase.from('at_driver_profiles').select('organization_id,display_name').eq('user_id', session.user.id).then(({ data, error: e }) => {
-      if (!mounted) return;
-      if (e) setError(e.message); else { setProfiles(data || []); setOrgId(data?.[0]?.organization_id || ''); }
-    }).catch(e => { if (mounted) setError(e.message); });
-    return () => { mounted = false; };
-  }, [demo, session, liveAllowed]);
-
-  async function loadWorkspace() {
-    if (!orgId || !session || demo) return;
-    const generation = ++scope.current;
-    const results = await Promise.all([
-      supabase.from('at_driver_test_preferences').select('service_id,online').eq('organization_id', orgId).eq('user_id', session.user.id).maybeSingle(),
-      supabase.from('at_driver_test_jobs').select('*').eq('organization_id', orgId).eq('driver_user_id', session.user.id).order('reference'),
-    ]);
-    if (scope.current !== generation) return;
-    const e = results.find(result => result.error)?.error;
-    if (e) throw e;
-    setJobs(results[1].data || []);
-    if (results[0].data) { setServiceId(results[0].data.service_id); setOnline(results[0].data.online); }
-  }
-  useEffect(() => { loadWorkspace().catch(e => setError(e.message)); return () => { scope.current++; }; }, [orgId, session?.user?.id, demo]);
-
-  async function run(action) { setBusy(true); setError(''); setNotice(''); try { await action(); } catch (e) { setError(e.message || 'Unable to save. Please retry.'); } finally { setBusy(false); } }
-  async function signIn(event) {
-    event.preventDefault();
-    await run(async () => { const { error: e } = await supabase.auth.signInWithPassword({ email: email.trim(), password }); if (e) throw e; setPassword(''); });
-  }
-  async function saveAvailability(nextOnline) {
-    if (demo) { setOnline(nextOnline); setNotice('Preview only — nothing saved.'); return; }
-    await run(async () => {
-      const { error: e } = await supabase.from('at_driver_test_preferences').upsert({ organization_id: orgId, user_id: session.user.id, service_id: serviceId, online: nextOnline }, { onConflict: 'organization_id,user_id' });
-      if (e) throw e; setOnline(nextOnline); setNotice('Test availability saved. This does not enable live dispatch.');
-    });
-  }
-  async function advance(job) {
-    await run(async () => {
-      const status = nextJobState(job.status); if (!status) return;
-      if (demo) { setJobs(previous => previous.map(item => item.id === job.id ? { ...item, status, revision: item.revision + 1 } : item)); return; }
-      const { data, error: e } = await supabase.from('at_driver_test_jobs').update({ status }).eq('id', job.id).eq('revision', job.revision).select().maybeSingle();
-      if (e) throw e;
-      if (!data) { await loadWorkspace(); throw new Error('This job changed in another session. Review its latest status and retry.'); }
-      setJobs(previous => previous.map(item => item.id === data.id ? data : item)); setNotice('Test progress saved.');
-    });
-  }
-  function openJob(job) { setServiceId(job.service_id); setActiveId(job.id); setTab('jobs'); setNotice(''); }
-  const filtered = jobs.filter(job => job.service_id === serviceId);
-  const completed = jobs.filter(job => job.status === 'completed');
-
-  return <div className="ud-page"><div className="ud-desktop-head"><Brand/><a href="/">Operations workspace <ArrowRight size={16}/></a></div>
-    <main className="ud-app">
-      <header className="ud-top"><Brand/><span className="ud-env">{demo ? 'VISUAL DEMO' : 'STAGING TEST'}</span></header>
-      <div className="ud-banner">{demo ? 'Sample data · Changes stay in this preview' : 'Test workspace · No live bookings or payments'}</div>
-      {error && <p className="ud-feedback ud-error" role="alert">{error}</p>}{notice && <p className="ud-feedback" role="status">{notice}</p>}
-      {!ready ? <p className="ud-empty">Checking session…</p> : !demo && !session ? <section className="ud-login"><ShieldCheck size={36}/><h1>Your work.<br/>One driver app.</h1><p>Freight, delivery, rides, and collection services in one workspace.</p>
-        {liveAllowed ? <form onSubmit={signIn}><label>Email<input type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} required/></label><label>Password<input type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required/></label><button className="ud-primary" disabled={busy}>{busy ? 'Signing in…' : 'Sign in to staging'}</button><small>Use an existing staging driver account. Contact your administrator for account access or password recovery.</small></form> : <p>Database testing is available only on the configured staging preview.</p>}
-        <button className="ud-secondary" onClick={() => { setDemo(true); setError(''); }}>Explore visual demo</button>
-      </section> : <>
-        <div className="ud-content">
-          {!demo && profiles.length > 1 && <label className="ud-org">Workspace<select value={orgId} onChange={e => { setOrgId(e.target.value); setActiveId(''); setJobs([]); setOnline(false); }}>{profiles.map(p => <option key={p.organization_id} value={p.organization_id}>{p.display_name} · {p.organization_id.slice(0, 8)}</option>)}</select></label>}
-          {!demo && !orgId && <p className="ud-empty">A staging driver profile is required. Ask your administrator to assign one to your account.</p>}
-          {tab === 'home' && <><div className="ud-greeting"><div><p className="ud-eyebrow">DRIVER WORKSPACE</p><h1>Hello, {demo ? 'Ivan' : profile?.display_name || 'driver'}</h1><p>Choose your service</p></div><button className={'ud-toggle ' + (online ? 'on' : '')} aria-pressed={online} aria-label="Test availability" disabled={busy || (!demo && !orgId)} onClick={() => saveAvailability(!online)}><span/>{online ? 'Online' : 'Offline'}</button></div>
-            <div className="ud-services">{DRIVER_SERVICES.map(item => { const Icon = icons[item.icon]; return <button key={item.id} className={'ud-service ' + (serviceId === item.id ? 'selected' : '')} aria-pressed={serviceId === item.id} onClick={() => setServiceId(item.id)}><Icon size={30}/><strong>{item.label}</strong><small>{item.subtitle}</small><ArrowRight size={16} className="ud-card-arrow"/></button>; })}</div>
-            <div className="ud-summary"><div><span>Test work completed</span><strong>{completed.length} / {jobs.length} jobs</strong></div><Check size={28}/></div>
-            <button className="ud-primary" onClick={() => { setActiveId(''); setTab('jobs'); }}>View {service.label} jobs <ArrowRight size={18}/></button>
-          </>}
-          {tab === 'jobs' && (active ? <><button className="ud-back" onClick={() => setActiveId('')}><ArrowLeft size={16}/> All jobs</button><div className="ud-job-heading"><span className="ud-eyebrow">{service.label}</span><h1>{active.reference}</h1><span className="ud-chip">{STATE_LABEL[active.status]}</span></div><RoutePreview service={service}/><section className="ud-job-sheet"><h2>{active.destination}</h2><p><MapPin size={15}/> From {active.pickup}</p><div className="ud-estimate"><span>Sample estimated pay<strong>{money(active.estimated_cents)}</strong></span><small>No payout is processed</small></div><p className="ud-detail">{active.detail}</p><div className="ud-progress">{['accepted', 'at_pickup', 'in_transit', 'completed'].map((state, index) => <div key={state} className={['offered', 'accepted', 'at_pickup', 'in_transit', 'completed'].indexOf(active.status) > index ? 'done' : ''}><span>{index + 1}</span><small>{['Accept', 'Pickup', 'Transit', 'Done'][index]}</small></div>)}</div>{NEXT_ACTION[active.status] ? <button className="ud-primary" disabled={busy} onClick={() => advance(active)}>{busy ? 'Saving…' : NEXT_ACTION[active.status]}</button> : <p className="ud-complete"><Check size={20}/> Test job complete</p>}<p className="ud-muted"><Navigation size={14}/> Route illustration only. Live navigation and GPS are not connected.</p></section></> : <><p className="ud-eyebrow">YOUR ASSIGNMENTS</p><h1>Test jobs</h1><select aria-label="Filter jobs by service" className="ud-filter" value={serviceId} onChange={e => setServiceId(e.target.value)}>{DRIVER_SERVICES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}</select>{filtered.length ? filtered.map(job => <button className="ud-job-card" key={job.id} onClick={() => openJob(job)}><div><span className="ud-chip">{STATE_LABEL[job.status]}</span><h2>{job.reference}</h2><p>{job.pickup}</p><p>→ {job.destination}</p><strong>{money(job.estimated_cents)} <small>sample estimate</small></strong></div><ArrowRight size={20}/></button>) : <p className="ud-empty">No test jobs assigned for this service.</p>}</>)}
-          {tab === 'earnings' && <><p className="ud-eyebrow">TEST ACTIVITY</p><h1>Earnings preview</h1><div className="ud-summary"><div><span>Sample value of completed test jobs</span><strong>{money(completed.reduce((sum, job) => sum + job.estimated_cents, 0))}</strong></div><Wallet size={28}/></div><p className="ud-muted">Illustrative estimates only. No funds, tips, settlements, or payouts are connected.</p>{completed.map(job => <button key={job.id} className="ud-job-card" onClick={() => openJob(job)}>{job.reference}<strong>{money(job.estimated_cents)}</strong></button>)}</>}
-          {tab === 'messages' && <><p className="ud-eyebrow">DISPATCH CONNECTION</p><h1>Messages</h1><div className="ud-empty"><MessageCircle size={40}/><h2>Messaging is next</h2><p>Dispatcher and customer conversations will appear here once the messaging integration is connected.</p></div></>}
-          {tab === 'account' && <><p className="ud-eyebrow">DRIVER ACCOUNT</p><h1>{demo ? 'Ivan Anderson' : profile?.display_name || 'Driver'}</h1><div className="ud-summary"><div><span>Workspace</span><strong>{demo ? 'Visual demo' : 'Andertrack Staging'}</strong></div><ShieldCheck/></div><p className="ud-muted">Service selection does not grant operating approval. Real service eligibility, vehicle checks, HOS/ELD, and payment integrations remain separate.</p>{!demo && <button className="ud-secondary" disabled={busy} onClick={() => run(async () => { const { error: e } = await supabase.auth.signOut({ scope: 'local' }); if (e) throw e; })}><LogOut size={18}/> Sign out</button>}<a className="ud-secondary" href="/">Open existing operations workspace</a></>}
-        </div><nav className="ud-nav" aria-label="Driver navigation">{tabs.map(item => { const Icon = item.icon; return <button key={item.id} aria-current={tab === item.id ? 'page' : undefined} onClick={() => { setTab(item.id); setActiveId(''); setNotice(''); }}><Icon size={21}/><span>{item.label}</span></button>; })}</nav>
+  return <div className="ud-page"><div className="ud-desktop-head"><Brand/><a href="/">Driver workspace <ArrowRight size={16}/></a></div><main className="ud-app">
+    <header className="ud-top"><Brand/><span className="ud-env">{demo?'VISUAL DEMO':'STAGING LIVE'}</span></header>
+    <div className="ud-banner">{demo?'Sample data · Changes stay in this preview':'Connected to dispatch · Staging only'}</div>
+    {currentError&&<p className="ud-feedback ud-error" role="alert">{currentError}</p>}{notice&&<p className="ud-feedback" role="status">{notice}</p>}
+    {!ready?<p className="ud-empty">Checking session…</p>:!demo&&!session?<section className="ud-login"><ShieldCheck size={36}/><h1>Your work.<br/>One driver app.</h1><p>Sign in to connect with your dispatch team.</p>
+      {configured&&CONNECTED_STAGING?<form onSubmit={signIn}><label>Email<input type="email" autoComplete="username" value={email} onChange={e=>setEmail(e.target.value)} required/></label><label>Password<input type="password" autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)}/></label><button className="ud-primary" disabled={busy||!password}>{busy?'Signing in…':'Sign in to staging'}</button><button type="button" className="ud-secondary" disabled={busy||!email.trim()||clock<retryAt} onClick={sendLink}>{clock<retryAt?`Retry email in ${Math.ceil((retryAt-clock)/1000)}s`:'Email me a sign-in link'}</button><small>Existing driver accounts only. Your dispatcher manages access.</small></form>:<p>Connected operations are available only on the configured staging preview.</p>}
+      <button className="ud-secondary" onClick={()=>{setDemo(true);setError('');}}>Explore visual demo</button>
+    </section>:<><div className="ud-content">
+      {!demo&&profiles.length>1&&<label className="ud-org">Workspace<select value={orgId} onChange={e=>{epoch.current++;void location.stop();setOrgId(e.target.value);setActiveId('');setBusy(false);}}>{profiles.map(p=><option key={p.organization_id} value={p.organization_id}>{p.display_name} · {p.organization_id.slice(0,8)}</option>)}</select></label>}
+      {!demo&&!orgId&&<p className="ud-empty">Your account needs a driver profile in a staging organization. Dispatch can help with access.</p>}
+      {tab==='home'&&<><div className="ud-greeting"><div><p className="ud-eyebrow">DRIVER WORKSPACE</p><h1>Hello, {demo?'Ivan':profile?.display_name||'driver'}</h1><p>{demo?'Choose your service':live.sync}</p></div><button className={'ud-toggle '+(online?'on':'')} aria-pressed={online} aria-label="Driver availability" disabled={busy||location.starting||(!demo&&!orgId)} onClick={toggleOnline}><span/>{location.starting?'Locating…':online?'Online':'Offline'}</button></div>
+        <div className="ud-services">{DRIVER_SERVICES.map(item=>{const Icon=icons[item.icon];return <button key={item.id} className={'ud-service '+(serviceId===item.id?'selected':'')} aria-pressed={serviceId===item.id} onClick={()=>setServiceId(item.id)}><Icon size={29}/><strong>{item.label}</strong><small>{demo?item.subtitle:approvals.includes(item.id)?'Approved service':'Approval required'}</small><ArrowRight size={15} className="ud-card-arrow"/></button>;})}</div>
+        <div className="ud-summary"><div><span>{demo?'Sample work completed':'Completed assignments'}</span><strong>{complete.length} tasks</strong></div><Check size={26}/></div>
+        <button className="ud-primary" onClick={()=>{setActiveId('');setTab('jobs');}}>View {SERVICE_NAMES[serviceId]||'all'} jobs <ArrowRight size={18}/></button>
+        <div className="connected-location"><strong><MapPin size={17}/>{online?'Sharing location with dispatch':'Location required to go online'}</strong><small>{demo?'Demo mode never requests your real location.':'Shares GPS only with authorized dispatch in your organization while this app is visible. Going offline, switching workspaces, or hiding the app stops sharing.'}</small></div>
+        <button className="ud-secondary" disabled={busy||location.starting||(!demo&&!orgId)} onClick={toggleOnline}>{online?'Stop sharing & go offline':demo?'Go online in demo':'Share location & go online'}</button>
+        {!demo&&map()}
       </>}
-      {session && !demo && orgId && <button className="ud-refresh" disabled={busy} onClick={() => run(loadWorkspace)}><RefreshCw size={13}/> Refresh staging data</button>}
-    </main><p className="ud-footnote">ANDERTRACK · UNIVERSAL LOGISTICS OS · DRIVER PREVIEW</p>
-  </div>;
+      {tab==='jobs'&&(active?<><button className="ud-back" onClick={()=>setActiveId('')}><ArrowLeft size={16}/> All jobs</button><div className="ud-job-heading"><span className="ud-eyebrow">{titleService}</span><h1>{active.reference}</h1><span className="ud-chip">{pretty(active.status)}</span></div>{map()}<section className="ud-job-sheet"><h2>{demo?active.destination:active.dropoff_address}</h2><p><MapPin size={15}/> From {demo?active.pickup:active.pickup_address}</p>{demo&&<div className="ud-estimate"><span>Sample estimated pay<strong>{money(active.estimated_cents)}</strong></span><small>No payout is processed</small></div>}<p className="ud-detail">{demo?active.detail:active.commodity}</p>
+        {!demo&&<><p className="ud-muted">{active.customer_name} · {active.estimated_miles??'—'} estimated miles</p><a className="ud-secondary" href={'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(active.status==='offered'||active.status==='accepted'?active.pickup_address:active.dropoff_address)} target="_blank" rel="noreferrer"><Navigation size={16}/> Open navigation</a></>}
+        {(demo?NEXT_ACTION[active.status]:active.status==='offered'?'Accept assignment':NEXT_LIVE_ACTION[active.status]?.[1])&&<button className="ud-primary" disabled={busy||(!demo&&active.status==='offered'&&!online)} onClick={()=>progress(active)}>{busy?'Saving…':demo?NEXT_ACTION[active.status]:active.status==='offered'?'Accept assignment':NEXT_LIVE_ACTION[active.status][1]}</button>}
+        {!demo&&active.status==='offered'&&<button className="ud-secondary" disabled={busy} onClick={()=>progress(active,true)}>Decline offer</button>}
+        {((demo&&active.status==='completed')||(!demo&&active.status==='delivered'))&&<p className="ud-complete"><Check size={20}/>{demo?'Test job complete':'Delivery confirmed'}</p>}
+        {!demo&&active.status==='in_transit'&&<p className="connected-muted">Proof of delivery is required to finish. Open the existing driver workspace for package scans and POD; completion is never inferred from arrival.</p>}
+        <button className="ud-secondary" onClick={()=>setTab('messages')}><MessageCircle size={16}/> Message dispatch</button>
+      </section></>:<><p className="ud-eyebrow">YOUR ASSIGNMENTS</p><h1>{demo?'Test jobs':'My jobs'}</h1><input className="connected-field" aria-label="Search jobs" placeholder="Search reference or address" value={query} onChange={e=>setQuery(e.target.value)}/><select aria-label="Filter jobs by service" className="ud-filter" value={serviceId} onChange={e=>setServiceId(e.target.value)}><option value="all">All services</option>{DRIVER_SERVICES.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select><div className="connected-tab-row">{['active','history','all'].map(value=><button key={value} aria-pressed={filter===value} onClick={()=>setFilter(value)}>{value==='active'?'Active':value==='history'?'History':'All jobs'}</button>)}</div>{visible.length?visible.map(job=><button className="ud-job-card" key={job.id} onClick={()=>openJob(job)}><div><span className="ud-chip">{pretty(job.status)}</span><h2>{job.reference}</h2><p>{demo?job.pickup:job.pickup_address}</p><p>→ {demo?job.destination:job.dropoff_address}</p>{demo&&<strong>{money(job.estimated_cents)} <small>sample estimate</small></strong>}</div><ArrowRight size={20}/></button>):<p className="ud-empty">No matching assignments. Check the queue or select another service.</p>}</>)}
+      {tab==='queue'&&<><p className="ud-eyebrow">SHARED FIFO DISPATCH</p><h1>Driver queue</h1><label className="ud-org">Requested service<select value={serviceId==='all'?'otr':serviceId} onChange={e=>setServiceId(e.target.value)}>{DRIVER_SERVICES.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></label><QueueView queue={queue} userId={demo?'demo-user':user} onJoin={joinQueue} onCancel={leaveQueue} busy={busy} canJoin={canJoin} reason={queueReason} demo={demo}/></>}
+      {tab==='earnings'&&<><p className="ud-eyebrow">WORK & SETTLEMENTS</p><h1>{demo?'Earnings preview':'Earnings'}</h1><div className="ud-summary"><div><span>{demo?'Sample value of completed test jobs':'Completed tasks'}</span><strong>{demo?money(complete.reduce((sum,j)=>sum+j.estimated_cents,0)):complete.length}</strong></div><Wallet size={27}/></div><p className="ud-muted">{demo?'Illustrative estimates only. No funds, tips, settlements, or payouts are connected.':'Payroll and settlements are not connected. Amounts will appear after dispatch connects a verified earnings source.'}</p>{complete.map(j=><button key={j.id} className="ud-job-card" onClick={()=>openJob(j)}>{j.reference}<strong>{demo?money(j.estimated_cents):'Delivered'}</strong></button>)}</>}
+      {tab==='messages'&&<><p className="ud-eyebrow">TWO-WAY COMMUNICATION</p><h1>Messages</h1><Messenger key={orgId+':'+user+':'+demo} client={supabase} organizationId={orgId} driverUserId={demo?'demo-user':user} currentUserId={demo?'demo-user':user} demo={demo}/></>}
+      {tab==='account'&&<><p className="ud-eyebrow">DRIVER ACCOUNT</p><h1>{demo?'Ivan Anderson':profile?.display_name||'Driver'}</h1><div className="ud-summary"><div><span>Workspace</span><strong>{demo?'Visual demo':'Andertrack Staging'}</strong></div><ShieldCheck/></div><p className="ud-muted">{demo?'Sample account':session?.user?.email}</p><h2>Service access</h2><div>{DRIVER_SERVICES.map(s=><span key={s.id} className="connected-chip">{s.label} · {demo?'Sample':approvals.includes(s.id)?'Approved':'Review required'}</span>)}</div><h2>Location & privacy</h2><p className="ud-muted">{online?'Sharing is active. Dispatch can see your latest position.':'Sharing is off. Go online from Home to enable dispatch tracking.'} Drivers cannot see other drivers’ GPS coordinates. Tracking expires after 60 seconds without a fresh update.</p><button className="ud-secondary" disabled={!online||busy} onClick={toggleOnline}>Stop location sharing</button>{!demo&&<><p className="ud-muted">License: Class {profile?.license_class||'—'} · {profile?.license_verified?'Verified':'Verification required'}</p><button className="ud-secondary" disabled={busy} onClick={()=>run(async()=>{await location.stop();const {error:e}=await supabase.auth.signOut({scope:'local'});if(e)throw e;})}><LogOut size={18}/> Sign out</button></>}<a className="ud-secondary" href="/">Existing driver controls & proof of delivery</a></>}
+    </div><nav className="ud-nav" aria-label="Driver navigation">{tabs.map(item=>{const Icon=item.icon;return <button key={item.id} aria-current={tab===item.id?'page':undefined} onClick={()=>{setTab(item.id);setActiveId('');setNotice('');}}><Icon size={20}/><span>{item.label}</span></button>;})}</nav></>}
+    {session&&!demo&&orgId&&<button className="ud-refresh" disabled={busy||live.loading} onClick={()=>run(live.refresh)}><RefreshCw size={13}/>{live.loading?'Refreshing…':'Refresh dispatch data'}</button>}
+  </main><p className="ud-footnote">ANDERTRACK · UNIVERSAL LOGISTICS OS · DRIVER PREVIEW</p></div>;
 }

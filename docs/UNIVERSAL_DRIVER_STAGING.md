@@ -20,11 +20,13 @@ The staging-only fixture script creates six clearly marked TEST jobs for the exi
 
 ## Verification
 
-- Root and driver unit/regression suites and both Vite builds.
+- 134 root tests and 16 driver tests pass; both Vite builds succeed.
 - `tests/sql/universal_driver_test_security.sql`: authenticated valid transition, skipped-step rejection, stale revision rejection, protected price column, audit insert denial, preference upsert, cross-driver read isolation, anonymous denial. Mutations roll back.
 - Security advisor has no findings on the new tables or private trigger functions. Existing public DVIR/service RPC advisories and disabled leaked-password protection remain outside this change.
 - Actual existing-account sign-in and browser-to-database persistence need a real staging session; SQL role simulation does not establish end-to-end Auth QA.
-- The initial Vercel preview failed with `module_not_found`. Universal Driver source was subsequently placed entirely inside `apps/driver` so its build does not depend on root-package dependencies. Reading Vercel build logs returned a team-authorization 403; remote retesting awaits the connection grant.
+- The initial Vercel preview failed with `module_not_found`. Universal Driver source was subsequently placed entirely inside `apps/driver` so its build does not depend on root-package dependencies. The corrected commit `c20133d` reached READY in Preview deployment `dpl_BgTheQBM7y9aoLb2KjinxDreVrL9`.
+- Vercel team authorization and browser sign-in succeeded. Browser QA on the corrected preview confirmed all six service filters, OTR accept/arrival/pickup/completion, the completed sample earnings total, and the explicit messaging placeholder. These demo actions made no database writes.
+- The non-demo `/universal` route correctly renders the staging driver authentication gate. Vercel authentication is separate from Supabase driver authentication; browser-to-database persistence remains unverified until an existing staging driver signs in.
 
 ## Limits
 

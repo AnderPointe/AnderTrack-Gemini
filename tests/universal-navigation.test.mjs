@@ -17,23 +17,24 @@ test('universal navigation has unique registered view IDs',()=>{
   assert.equal(new Set(UNIVERSAL_NAV_GROUPS.map(x=>x.id)).size,UNIVERSAL_NAV_GROUPS.length);
 });
 
-test('planned domains are nested in correct navigation groups',()=>{
+test('service task domains remain in the correct operational divisions',()=>{
   for(const [id,group] of [
     ['freight-3pl','freight'],['hotshot','hotshot'],
     ['local-courier','local-services'],['food-delivery','local-services'],
     ['passenger-services','local-services']
   ]) {
     assert.equal(getUniversalNavItem(id)?.groupId,group,id);
-    assert.equal(getUniversalNavItem(id)?.status,'planned',id);
+    assert.equal(getUniversalNavItem(id)?.status,id==='hotshot'?'planned':'existing',id);
     assert.ok(getUniversalWorkspace(id),id);
   }
+  assert.equal(getUniversalNavItem('waste-services')?.groupId,'collection');
 });
 
 test('division cards link to known workspaces and architecture links exist',()=>{
   assert.equal(UNIVERSAL_DIVISIONS.length,6);
   for(const division of UNIVERSAL_DIVISIONS) assert.ok(getUniversalNavItem(division.id));
   for(const [id,workspace] of Object.entries(UNIVERSAL_WORKSPACES)){
-    assert.equal(getUniversalNavItem(id)?.status,'planned');
+    assert.equal(getUniversalNavItem(id)?.status,id==='hotshot'?'planned':'existing');
     assert.ok(workspace.capabilities.length);
     for(const link of workspace.links)assert.equal(getUniversalNavItem(link.id)?.status,'existing');
   }

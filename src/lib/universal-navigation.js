@@ -8,11 +8,12 @@ export const UNIVERSAL_NAV_GROUPS = [
     {id:'overview',label:'Universal Overview',icon:'dashboard',status:'existing'},
     {id:'tracking',label:'Live Tracking',icon:'map',status:'existing'},
     {id:'dispatch',label:'Dispatch Center',icon:'dispatch',status:'existing'},
+    {id:'communications',label:'Messages & Task Intake',icon:'dispatch',status:'existing'},
     {id:'dispatch-mode',label:'Dispatch Mode',icon:'map',status:'existing'},
     {id:'dispatch-planner',label:'Load Planning',icon:'route',status:'existing'},
   ]},
   { id:'freight',label:'3PL & FREIGHT',items:[
-    {id:'freight-3pl',label:'3PL Freight Hub',icon:'freight',status:'planned'},
+    {id:'freight-3pl',label:'3PL & OTR Tasks',icon:'freight',status:'existing'},
     {id:'journeys',label:'Shipment Journeys',icon:'history',status:'existing'},
   ]},
   { id:'hotshot',label:'HOTSHOT & EXPEDITED',items:[
@@ -24,9 +25,12 @@ export const UNIVERSAL_NAV_GROUPS = [
   ]},
   { id:'local-services',label:'CLASS C / LOCAL SERVICES',items:[
     {id:'class-c',label:'Class C Fleet',icon:'fleet',status:'existing'},
-    {id:'local-courier',label:'Local Courier',icon:'package',status:'planned'},
-    {id:'food-delivery',label:'Food Delivery',icon:'food',status:'planned'},
-    {id:'passenger-services',label:'Passenger Services',icon:'passenger',status:'planned'},
+    {id:'local-courier',label:'Local Courier Tasks',icon:'package',status:'existing'},
+    {id:'food-delivery',label:'Food Delivery Tasks',icon:'food',status:'existing'},
+    {id:'passenger-services',label:'Passenger Tasks',icon:'passenger',status:'existing'},
+  ]},
+  { id:'collection',label:'COLLECTION SERVICES',items:[
+    {id:'waste-services',label:'Waste & Collection',icon:'fleet',status:'existing'},
   ]},
   { id:'fleet',label:'FLEET & VEHICLES',items:[
     {id:'fleet',label:'Drivers & Vehicles',icon:'fleet',status:'existing'},

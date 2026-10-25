@@ -28,6 +28,7 @@ import {UniversalDivisionLaunchpad,UniversalDivisionWorkspace} from './Universal
 import {UNIVERSAL_NAV_GROUPS,UNIVERSAL_NAV_ITEMS,getUniversalNavItem,getUniversalWorkspace} from '../../lib/universal-navigation.js';
 import UniversalDispatchFoundation from './UniversalDispatchFoundation.jsx';
 import './universal-dispatch.css';
+import ConnectedDispatch, {CreateServiceTask,ServiceTaskWorkspace} from './ConnectedDispatch.jsx';
 
 const UNIVERSAL_ICONS = {
   dashboard:LayoutDashboard, map:MapPinned, dispatch:Radio, route:Route,
@@ -355,6 +356,7 @@ export default function OpsCommandCenter({
             <option key={m.organization_id} value={m.organization_id}>{m.organization_id.slice(0,8)} · {m.role}</option>)}</select></div>}
           {noDriver&&<div className="at-alert"><LockKeyhole size={18}/> Driver onboarding incomplete. Your organization must create a profile and verify your license before assignments and queue requests are available.</div>}
           {getUniversalWorkspace(view)&&<UniversalDivisionWorkspace view={view} onNavigate={open} role={role} isDemo={isDemo}/>}
+          <ServiceTaskWorkspace key={view+':'+organizationId} view={view} organizationId={organizationId} role={role} assignments={assignments} onChanged={reload} isDemo={isDemo} onReview={id=>{setSelectedId(id);open('dispatch');}}/>
           {view==='overview'&&<>
             <UniversalDivisionLaunchpad onNavigate={open}/>
             <UniversalDispatchFoundation assignments={ordered} organizationId={organizationId} isDemo={isDemo} canPlan={planner||isDemo}
@@ -418,6 +420,7 @@ export default function OpsCommandCenter({
             requests={dispatchRequests} organizationId={organizationId} role={role} isDemo={isDemo}
             onOpenDispatch={()=>open('dispatch')}
             onReviewLoad={id=>{setSelectedId(id);setQuery('');setFilter('all');open('dispatch');}}/>}
+          {view==='communications'&&<ConnectedDispatch key={organizationId+':'+userId} organizationId={organizationId} session={session} role={role} drivers={drivers} onChanged={reload} isDemo={isDemo}/>}
           {view==='dispatch'&&<div className="at-dispatch-grid">
             <div>{isDemo?<section className="at-surface"><CardHeading eyebrow="QUEUE / DEMONSTRATION" title="First-in first-out"/>
               <p className="at-subtext">Phase 5 processes queue requests in database order. Connect authorized driver accounts to test the live queue.</p>
@@ -426,6 +429,7 @@ export default function OpsCommandCenter({
               <div className="at-demo-note"><LockKeyhole size={15}/> Demo only — claim controls disabled.</div></section>:
               <DispatchRequestQueue organizationId={organizationId} role={role} currentUserId={userId} profile={profile}
                 requests={dispatchRequests} drivers={drivers} assignments={assignments} vehicles={vehicles} onChanged={reload}/>}
+              {!isDemo&&planner&&<CreateServiceTask key={organizationId} organizationId={organizationId} onChanged={reload}/>}
               <ShipmentPanel assignments={ordered} selected={selected} onSelect={setSelectedId} filter={filter} setFilter={setFilter} query={query} onExport={exportShipments}/>
             </div>
             <ShipmentDetail active={selected} driver={currentDriver} role={role} organizationId={organizationId}
@@ -454,7 +458,7 @@ export default function OpsCommandCenter({
             <DispatchModeDashboard
               key={organizationId+':'+userId+':'+(isDemo?'demo':'live')}
               assignments={ordered} drivers={drivers} vehicles={vehicles} locations={locations}
-              role={role} isDemo={isDemo} organizationId={organizationId}
+              role={role} isDemo={isDemo} organizationId={organizationId} currentUserId={userId}
               onReviewLoad={id=>{setSelectedId(id);setQuery('');setFilter('all');open('dispatch');}}
               onOpenQueue={()=>open('dispatch')} onOpenFleet={()=>open('fleet')}/>
             {(planner||isDemo)&&<DriverVehicleProfiles
