@@ -25,6 +25,8 @@ export function useDriverLocation(api,org,user,enabled){
     try{sessionToken=await api.rpc('at_begin_driver_tracking',{p_organization_id:org});}
     catch(e){setStarting(false);setError(e.message);throw e;}
     if(scope!==generation.current)return;token.current=sessionToken;
+    try{await api.rpc('at_consent_customer_tracking',{p_organization_id:org,p_session_id:sessionToken});}catch(e){await stop();setError(e.message);throw e;}
+    if(scope!==generation.current)return;
     return new Promise((resolve,reject)=>{
       pending.current=reject;
       let began=false,settled=false;
