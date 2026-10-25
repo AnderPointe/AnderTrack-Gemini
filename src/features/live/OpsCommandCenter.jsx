@@ -25,7 +25,7 @@ import {WarehouseOperationsDashboard,DeliveryOverviewDashboard} from './ModernOp
 import DriverVehicleProfiles from './DriverVehicleProfiles.jsx';
 import ClassCOpsDashboard from './ClassCOpsDashboard.jsx';
 import {UniversalDivisionLaunchpad,UniversalDivisionWorkspace} from './UniversalDivisionWorkspace.jsx';
-import {UNIVERSAL_NAV_GROUPS,getUniversalNavItem,getUniversalWorkspace} from '../../lib/universal-navigation.js';
+import {UNIVERSAL_NAV_GROUPS,UNIVERSAL_NAV_ITEMS,getUniversalNavItem,getUniversalWorkspace} from '../../lib/universal-navigation.js';
 import UniversalDispatchFoundation from './UniversalDispatchFoundation.jsx';
 import './universal-dispatch.css';
 
@@ -494,7 +494,7 @@ export default function OpsCommandCenter({
         </>}
         <AlertDrawer open={alertDrawerOpen} alerts={alerts} activity={activity} snoozes={scopedSnoozes} onNavigate={goToItem}
           onSnooze={onSnooze} onRestore={onRestore} onClose={()=>setAlertDrawerOpen(false)} isDemo={isDemo}/>
-        <CommandPalette open={paletteOpen} onClose={()=>setPaletteOpen(false)} onNavigate={goToItem} assignments={ordered} drivers={drivers} pages={NAV}/>
+        <CommandPalette open={paletteOpen} onClose={()=>setPaletteOpen(false)} onNavigate={goToItem} assignments={ordered} drivers={drivers} pages={UNIVERSAL_NAV_ITEMS}/>
         {focusedPin&&<div className="at-floating-detail" role="status"><Truck size={19}/><div><strong>{focusedPin.unit_number||focusedPin.display_name||'Fleet unit'}</strong>
           <small>{human(focusedPin.status)} · Last ping {focusedPin.last_ping_at?new Date(focusedPin.last_ping_at).toLocaleString():'unknown'}</small></div>
           <button onClick={()=>setFocusedPin(null)} aria-label="Dismiss fleet detail"><X size={17}/></button></div>}

@@ -38,18 +38,21 @@ function PageShell({children,user,onSignOut,online}) {
   </div>;
 }
 
-function Login({onLogin,loading,message,cooldownSeconds=0,onTraining=()=>{}}) {
+function Login({onLogin,loading,message,cooldownSeconds=0,onTraining=()=>{},available=true}) {
   const [email,setEmail]=useState('');
   return <section className="driver-auth">
-    <div className="driver-auth-icon"><ShieldCheck size={31}/></div>
+    <img className="driver-auth-logo" src="/brand/andertrack-dark.png" width="1280" height="1280" alt="AnderTrack — Logistics, Freight, Delivery"/>
+    <div className="driver-auth-icon"><LockKeyhole size={25}/></div>
     <span className="driver-eyebrow">AUTHORIZED DRIVER LOGIN</span>
-    <h1>Your next assignment starts here.</h1>
-    <p>Sign in using your approved AnderTrack email. Dispatch assignments will appear only after your account is linked to a driver organization.</p>
+    <h1>Welcome back.</h1>
+    <p>Your next mile starts here. Sign in with your approved driver email.</p>
+    {!available&&<p className="driver-form-message" role="status">Sign-in is unavailable in this preview. Explore the training simulation below.</p>}
     <form onSubmit={e=>{e.preventDefault();onLogin(email);}}>
       <label htmlFor="driver-email">Work email</label>
       <input id="driver-email" type="email" placeholder="driver@company.com"
-        value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
-      <button disabled={loading||cooldownSeconds>0} className="driver-primary" type="submit">
+        value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email" autoCapitalize="none" spellCheck={false} disabled={!available||loading} aria-describedby="driver-login-help"/>
+      <p id="driver-login-help" className="driver-login-help">We’ll email you a secure link. No password needed.</p>
+      <button disabled={!available||loading||cooldownSeconds>0} className="driver-primary" type="submit">
         {loading?<RefreshCw className="spin" size={18}/>:<ArrowRight size={18}/>}
         {cooldownSeconds>0?'Retry in '+formatCooldownSeconds(cooldownSeconds):'Send sign-in link'}
       </button>
@@ -64,6 +67,7 @@ function Login({onLogin,loading,message,cooldownSeconds=0,onTraining=()=>{}}) {
         <FlaskConical size={16}/> Explore training simulation
       </button>
     </div>
+    <p className="driver-login-support">Need access? Contact your dispatcher or workspace administrator.</p>
   </section>;
 }
 
@@ -350,10 +354,9 @@ export default function App(){
     setJobs([]);
   }
 
-  if(!configured)return <PageShell online={online}><div className="driver-access">
-    <LockKeyhole size={30}/><h1>Staging connection not configured</h1>
-    <p>Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY for a verified staging project in Vercel preview settings. Never use a service-role key.</p>
-  </div></PageShell>;
+  if(!configured)return <PageShell online={online}>{trainingMode
+    ? <TrainingMode onExit={()=>setTrainingMode(false)}/>
+    : <Login available={false} onLogin={()=>{}} loading={false} onTraining={()=>setTrainingMode(true)}/>}</PageShell>;
   if(authLoading)return <PageShell online={online}><div className="driver-access">Checking your secure session…</div></PageShell>;
   if(!user){
     if(trainingMode)return <PageShell online={online}><TrainingMode onExit={()=>setTrainingMode(false)}/></PageShell>;

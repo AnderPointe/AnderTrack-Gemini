@@ -184,3 +184,14 @@ button:disabled{opacity:.45;cursor:not-allowed;filter:none}
  .at-training-alert{padding:14px}
  .at-training-root{gap:15px}
 }
+
+/* AnderTrack brand theme — retain existing driver workflow and status semantics. */
+:root{background:#000;color:#fff;--bg:#000;--card:#121212;--card2:#121212;--border:#292929;--teal:#087d79;--orange:#ff8a18;--muted:#b3b3b3}
+.driver-shell{background:#000}.driver-topbar{background:#000;border-color:#292929}.driver-logo{background:#087d79;color:#fff}.driver-brand strong>span{color:#ff8a18}
+.driver-primary{background:#ff8a18;color:#000}.driver-secondary{background:#121212;border-color:#087d79;color:#fff}
+.driver-auth{background:#000;border:0;box-shadow:none;max-width:450px;padding:0 12px 30px;margin:0 auto}.driver-auth-logo{display:block;width:min(280px,75vw);height:auto;aspect-ratio:1;object-fit:contain;margin:0 auto 12px}
+.driver-auth .driver-auth-icon{color:#28c9be;background:transparent;border:0;width:44px;height:44px;margin:0 auto 10px}.driver-auth h1{text-align:center;font-size:36px;letter-spacing:-1px;margin:16px 0 10px}.driver-auth>.driver-eyebrow{display:block;text-align:center;color:#b3b3b3}.driver-auth>p{color:#b3b3b3;text-align:center}
+.driver-auth input{background:#121212;border:1px solid #292929;color:#fff;font-size:16px;min-height:54px}.driver-auth input::placeholder{color:#999}.driver-auth input:focus{border-color:#087d79;outline:2px solid #087d79;outline-offset:2px}
+.driver-auth .driver-primary{min-height:54px;font-size:14px}.driver-login-help{font-size:11px;color:#b3b3b3;line-height:1.7;margin:0}.driver-login-support{font-size:11px;line-height:1.8;margin-top:24px}.driver-auth .at-training-launch{background:#121212;border-color:#292929}.driver-auth .at-training-launch p{color:#b3b3b3}.driver-auth .driver-form-message{color:#fff}
+.driver-tabs button.active{background:#087d79;color:#fff}.driver-kpi svg,.driver-eyebrow{color:#32cbbf}
+:is(button,a,input,select):focus-visible{outline:3px solid #ff8a18;outline-offset:4px}
