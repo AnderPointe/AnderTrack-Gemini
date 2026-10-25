@@ -33,7 +33,7 @@ function PageShell({children,user,onSignOut,online}) {
         {user&&<button type="button" className="driver-icon-button" aria-label="Sign out" title="Sign out" onClick={onSignOut}><LogOut size={19}/></button>}
       </div>
     </header>
-    <main className="driver-main">{children}</main>
+    <main className="driver-main"><a className="driver-secondary" href="/universal">Open Universal Driver staging workspace <ArrowRight size={16}/></a>{children}</main>
     <footer className="driver-footer">ANDERTRACK OS · Secure driver access · Some services are still in development</footer>
   </div>;
 }
