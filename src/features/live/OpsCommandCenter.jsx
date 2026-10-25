@@ -1,3 +1,4 @@
+import {supabase} from '../../lib/supabase.js';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, BarChart3, Bell, CheckCircle2,
@@ -108,7 +109,7 @@ function ShipmentDetail({ active, driver, organizationId, role, currentUserId, p
       {!isDemo ? <>
         <AssignmentActions assignment={active} role={role} currentUserId={currentUserId}
           profile={profile} drivers={drivers} vehicles={vehicles} onChanged={reload}/>
-        <DeliveryWorkflow key={organizationId + ':' + active.id} assignment={active}
+        <DeliveryWorkflow client={supabase} key={organizationId + ':' + active.id} assignment={active}
           organizationId={organizationId} currentUserId={currentUserId}
           role={role} profile={profile} onChanged={reload}/>
         <ShipmentJourney key={'journey:' + organizationId + ':' + currentUserId + ':' + active.id}

@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Camera, CheckCircle2, Clock3, FileCheck2, PackageCheck, ScanBarcode, ShieldAlert, ShieldCheck } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 import './delivery-workflow.css';
 import { ALLOWED_PHOTO_MIME, validateEvidencePhoto, deliveryCapabilities } from '../../lib/delivery-guards.js';
 
@@ -27,7 +26,9 @@ export default function DeliveryWorkflow({
   profile,
   onChanged,
   isDemo = false,
+  client = null,
 }) {
+  const supabase = client;
   const id = assignment?.id;
   const [packages, setPackages] = useState([]);
   const [proof, setProof] = useState(null);
@@ -86,7 +87,7 @@ export default function DeliveryWorkflow({
     } finally {
       if (activeRequestRef.current === requestId) setLoading(false);
     }
-  }, [canView, courier, organizationId, id]);
+  }, [supabase, canView, courier, organizationId, id]);
 
   useEffect(() => {
     const requestId = ++activeRequestRef.current;

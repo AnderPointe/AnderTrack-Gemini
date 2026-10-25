@@ -13,7 +13,7 @@ export default function PublicWebsite({ onDemo }) {
     <a className="at-entry-skip" href="#website-main">Skip to content</a>
     <header className="at-site-nav">
       <a className="at-site-wordmark" href="/website" aria-label="AnderTrack home">ANDER<span>TRACK</span></a>
-      <nav aria-label="Main navigation"><a href="#platform">Platform</a><a href="#divisions">Divisions</a><a href={driverAppUrl}>Driver sign in <ArrowUpRight size={15}/></a></nav>
+      <nav aria-label="Main navigation"><a href="/hub">Customer Hub</a><a href="#platform">Platform</a><a href="#divisions">Divisions</a><a href={driverAppUrl}>Driver sign in <ArrowUpRight size={15}/></a></nav>
       <a className="at-site-outline" href="/operations?signup=1">Create account <ArrowRight size={16}/></a>
     </header>
     <main id="website-main" tabIndex={-1}>

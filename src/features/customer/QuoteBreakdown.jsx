@@ -1,0 +1,6 @@
+import React from 'react';
+import {dollars} from './pricing.js';
+export default function QuoteBreakdown({quote,estimate=false}){
+ if(!quote)return <p className="hub-muted">Enter valid distance and payload to see the estimate.</p>;
+ return <section className="hub-quote" aria-label="Transparent rate breakdown"><span className="hub-eyebrow">{estimate?'ESTIMATE · DISPATCH REVIEW REQUIRED':'QUOTE BREAKDOWN · USD'}</span><h2>{dollars(quote.total_cents)}</h2><dl>{[['Base service',quote.base_cents],['Distance · '+quote.miles+' mi',quote.distance_cents],['Pallet handling',quote.pallet_cents],['Payload increments',quote.payload_cents],['Urgency',quote.urgency_cents],['Minimum fare adjustment',quote.minimum_adjustment_cents]].map(([name,value])=><div key={name}><dt>{name}</dt><dd>{dollars(value)}</dd></div>)}</dl><div className="hub-pay"><span>Driver compensation<strong>{dollars(quote.driver_cents)}</strong></span><span>Service fee · included<strong>{dollars(quote.service_fee_cents)}</strong></span></div><p className="hub-muted">Policy v{quote.policy_version}. Payload is charged in started 1,000 lb increments. Priority adds 25%; express adds 50% before the minimum. No charge or payout is processed here. Taxes, tolls, special equipment and accessorials require dispatch review.</p></section>;
+}
