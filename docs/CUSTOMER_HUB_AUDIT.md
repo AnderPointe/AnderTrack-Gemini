@@ -36,3 +36,21 @@ After delivered, GPS entitlement ends even if that driver is still sharing for d
 - Both migrations apply only to Andertrack Staging. No production migration, merge or deployment is performed by this work.
 
 Before public launch: configure external-email/OAuth signup, enable an intentionally reviewed company policy, validate real customer/dispatch/driver sessions, test a physical GPS trip and image upload/download, and configure actual routing plus payment/payout providers. Existing staging driver qualification must be completed legitimately before live offers; rollback-only SQL qualification fixtures do not verify a real driver.
+
+## Service-specific request correction
+
+The request service now controls its labels, required fields, stored details and quote charges:
+
+| Service | Service details | Weight / pallets |
+|---|---|---|
+| 3PL Freight / OTR | Requested equipment, freight/load description, pickup/delivery appointments | Required load weight; pallet count |
+| Courier | Package count/type and handling instructions | Required total package weight; no pallets |
+| Food | Restaurant, order reference, meal/item count, hot/cold handling and handoff instructions | No weight or pallets |
+| Rideshare | Passengers, luggage, optional vehicle accessibility needs and pickup instructions | No weight or pallets |
+| Trash Removal | Waste category, item count, volume and collection instructions | No weight or pallets |
+
+Switching service resets service-specific fields and address/description prompts. Only that service's whitelisted details are saved. Freight/OTR retain pallet and weight charges; courier has weight charges only. Food, rideshare and trash quotes have no pallet/weight charges. Their item, passenger and volume details support dispatch review; per-meal, per-passenger and per-volume surcharges are not introduced. Other published base/distance/minimum/urgency rules still apply. Existing approved quote snapshots are not rewritten.
+
+Staging migration makes weight/pallet columns nullable and validates service details in the protected submission RPC. New food submissions do not need dummy weight values; malicious/stale freight values are discarded. Dispatch and driver request summaries use the actual service details. Weight-capacity checks still apply to weighted cargo; other requirements (food handling, seats/accessibility, permitted disposal/volume) require the existing service qualification and dispatch review, without claiming a new automated equipment-capacity match for those fields.
+
+Verification: 148 website tests + 30 driver tests pass; both builds pass. `tests/sql/service_specific_requests.sql` passed for all six service types, including food without payload, ignored stale freight values, invalid counts, missing courier weight and server quote review/approval. The full rollback-only customer lifecycle regression also passes. No retained business records or new Auth accounts are created by these tests.
