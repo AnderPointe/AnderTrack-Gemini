@@ -14,14 +14,14 @@ export default function PublicWebsite({ onDemo }) {
     <header className="at-site-nav">
       <a className="at-site-wordmark" href="/website" aria-label="AnderTrack home">ANDER<span>TRACK</span></a>
       <nav aria-label="Main navigation"><a href="#platform">Platform</a><a href="#divisions">Divisions</a><a href={driverAppUrl}>Driver sign in <ArrowUpRight size={15}/></a></nav>
-      <a className="at-site-outline" href="/operations">Operations login <ArrowRight size={16}/></a>
+      <a className="at-site-outline" href="/operations?signup=1">Create account <ArrowRight size={16}/></a>
     </header>
     <main id="website-main" tabIndex={-1}>
       <section className="at-site-hero" aria-labelledby="at-site-heading">
         <div className="at-site-hero-copy"><p className="at-site-eyebrow">ONE PLATFORM. EVERY MILE.</p>
           <h1 id="at-site-heading">Your fleet.<br/>Your drivers.<br/><span>One connected view.</span></h1>
           <p className="at-site-lead">From dispatch to delivery, AnderTrack brings your people, vehicles and assignments together—so the next move is always clear.</p>
-          <div className="at-site-actions"><button className="at-site-primary" onClick={onDemo}>Explore the demo <ArrowRight size={18}/></button><a href={driverAppUrl}>Open driver app <ArrowUpRight size={18}/></a></div>
+          <div className="at-site-actions"><a className="at-site-primary" href="/operations?signup=1">Get started <ArrowRight size={18}/></a><button className="at-site-primary" onClick={onDemo}>Explore the demo <ArrowRight size={18}/></button><a href={driverAppUrl}>Open driver app <ArrowUpRight size={18}/></a></div>
           <p className="at-site-disclosure"><ShieldCheck size={15}/> Interactive demo uses sample records.</p>
           <a className="at-site-concept-link" href="/concept">Preview the 3D command center concept <ArrowUpRight size={15}/></a>
         </div>
