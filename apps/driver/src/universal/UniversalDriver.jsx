@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Truck, Package, CarFront, UtensilsCrossed, Trash2, Home, BriefcaseBusiness, Wallet, MessageCircle, UserRound, ArrowLeft, ArrowRight, MapPin, Check, LogOut, RefreshCw, Navigation, ShieldCheck } from 'lucide-react';
-import { supabase, supabaseConfigured } from '../../lib/supabase';
-import { DRIVER_SERVICES, NEXT_ACTION, STATE_LABEL, money, nextJobState, sampleJobs } from '../../lib/universal-driver.js';
+import { supabase, configured as supabaseConfigured } from '../supabase.js';
+import { DRIVER_SERVICES, NEXT_ACTION, STATE_LABEL, money, nextJobState, sampleJobs } from './logic.js';
 import './universal-driver.css';
 
 const icons = { truck: Truck, package: Package, van: Truck, food: UtensilsCrossed, car: CarFront, trash: Trash2 };

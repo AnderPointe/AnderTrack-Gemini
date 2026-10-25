@@ -24,6 +24,7 @@ The staging-only fixture script creates six clearly marked TEST jobs for the exi
 - `tests/sql/universal_driver_test_security.sql`: authenticated valid transition, skipped-step rejection, stale revision rejection, protected price column, audit insert denial, preference upsert, cross-driver read isolation, anonymous denial. Mutations roll back.
 - Security advisor has no findings on the new tables or private trigger functions. Existing public DVIR/service RPC advisories and disabled leaked-password protection remain outside this change.
 - Actual existing-account sign-in and browser-to-database persistence need a real staging session; SQL role simulation does not establish end-to-end Auth QA.
+- The initial Vercel preview failed with `module_not_found`. Universal Driver source was subsequently placed entirely inside `apps/driver` so its build does not depend on root-package dependencies. Reading Vercel build logs returned a team-authorization 403; remote retesting awaits the connection grant.
 
 ## Limits
 

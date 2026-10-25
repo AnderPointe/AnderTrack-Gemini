@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DRIVER_SERVICES, JOB_STATES, nextJobState, sampleJobs, money } from '../src/lib/universal-driver.js';
+import { DRIVER_SERVICES, JOB_STATES, nextJobState, sampleJobs, money } from '../apps/driver/src/universal/logic.js';
 
 test('all requested services have unique identities and local food/rides remain Class C', () => {
   assert.equal(new Set(DRIVER_SERVICES.map(s => s.id)).size, 6);
