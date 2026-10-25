@@ -5,6 +5,8 @@ import AssignmentActions from './AssignmentActions.jsx';
 import DispatchRequestQueue from './DispatchRequestQueue.jsx';
 import OpsCommandCenter from './OpsCommandCenter.jsx';
 import LoginExperience from './LoginExperience.jsx';
+import {useOperations} from '../../../apps/driver/src/connected/useOperations.js';
+import {CONNECTED_STAGING,mapLocations} from '../../../apps/driver/src/connected/operations.js';
 
 function Label({ children, tone = '' }) {
   return <span className={`pill ${tone}`}>{children}</span>;
@@ -115,6 +117,13 @@ export default function LiveWorkspace({ onDemo, driver = false }) {
   scopeRef.current = userId + ':' + organizationId;
   const role = membership?.role || '';
   const isPlanner = role === 'admin' || role === 'dispatcher';
+  const connected = useOperations(supabase,organizationId,userId,isPlanner,Boolean(session)&&CONNECTED_STAGING);
+  const combinedLocations = useMemo(()=>{
+    const byDriver = new Map(locations.map(row=>[row.driver_id,row]));
+    for(const row of connected.locations)byDriver.delete(row.driver_user_id);
+    for(const row of mapLocations(connected.locations))byDriver.set(row.driver_id,{...row,unit_number:connected.drivers.find(d=>d.user_id===row.driver_id)?.display_name||row.unit_number});
+    return [...byDriver.values()];
+  },[locations,connected.locations,connected.drivers]);
 
   const reload = useCallback(async () => {
     if (!supabase || !userId || !organizationId || !role) return;
@@ -215,8 +224,8 @@ export default function LiveWorkspace({ onDemo, driver = false }) {
   if (!session) return <Login driver={driver} onDemo={onDemo}/>;
   return <OpsCommandCenter
     session={session} memberships={memberships} membershipLoaded={membershipLoaded} organizationId={organizationId} setOrganizationId={setOrganizationId}
-    role={role} profile={profile} assignments={assignments} dispatchRequests={dispatchRequests}
-    drivers={drivers} vehicles={vehicles} locations={locations} loading={loading} error={error}
+    role={role} profile={profile} assignments={CONNECTED_STAGING?connected.assignments:assignments} dispatchRequests={CONNECTED_STAGING?connected.queue.map(row=>({...row,status:'queued'})):dispatchRequests}
+    drivers={CONNECTED_STAGING?connected.drivers:drivers} vehicles={vehicles} locations={combinedLocations} loading={loading} error={error||connected.error}
     sync={sync} reload={reload} onDemo={onDemo}
     onSignOut={() => supabase.auth.signOut({scope:'global'})}/>;
 }
