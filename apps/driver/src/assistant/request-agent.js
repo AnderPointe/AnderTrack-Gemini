@@ -41,7 +41,9 @@ export function guidedRequest(messages,fields){
  // Labeled facts avoid guessing locations, order identities or ambiguous dates.
  for(const line of text.split(/\n|;/)){const match=line.trim().match(/^(pickup|from|destination|dropoff|to|restaurant|order|instructions|pickup time|deadline)\s*:\s*(.+)$/i);if(!match)continue;const key=match[1].toLowerCase(),value=match[2].trim();const field={pickup:'pickup',from:'pickup',destination:'dropoff',dropoff:'dropoff',to:'dropoff',restaurant:'details.restaurant_name',order:'details.order_reference',instructions:'description','pickup time':'start',deadline:'end'}[key];patch.push({field,value,reason:'Explicitly provided in your message'});}
  const suggestions=sanitizeSuggestions(patch,fields);
- const question=service==='food'?'What restaurant and order reference should I use? You can write “Restaurant: Example Cafe; Order: ORDER-31”.':service==='rideshare'?'What are the passenger pickup and destination addresses?':service==='waste'?'What waste type, item count and volume need collecting?':'What are the pickup and destination addresses, and the pickup/deadline times?';
+ const facts=Object.fromEntries(suggestions.map(p=>[p.field,p.value]));
+ const restaurant=facts['details.restaurant_name']||(fields.service==='food'?fields.details?.restaurant_name:''),order=facts['details.order_reference']||(fields.service==='food'?fields.details?.order_reference:'');
+ const question=service==='food'?(!restaurant||!order?'What restaurant and order reference should I use? You can write “Restaurant: Example Cafe; Order: ORDER-31”.':'Review these details, then confirm your pickup and delivery times in the form.'):service==='rideshare'?'What are the passenger pickup and destination addresses?':service==='waste'?'What waste type, item count and volume need collecting?':'What are the pickup and destination addresses, and the pickup/deadline times?';
  return {source:'guided',reply:suggestions.length?'I found details you can review below. '+question:'Tell me the service and details you know. '+question,suggestions};
 }
 export function applySuggestions(fields,suggestions,baseline,{replaceExisting=false}={}){

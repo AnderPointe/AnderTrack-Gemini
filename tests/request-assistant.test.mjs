@@ -5,7 +5,7 @@ import {assistantInput,createAssistantHandler,validateAssistantOutput} from '../
 const form=()=>({service:'freight',pickup:'',dropoff:'',description:'',miles:'65',pallets:'4',payload:'4200',urgency:'priority',details:{equipment:'box_truck'}});
 test('guided food conversation proposes actual food fields and preserves literal address punctuation',()=>{
  const response=guidedRequest([{text:'Food delivery: 3 hot meals.\nRestaurant: Example Cafe\nOrder: DEMO-31\nPickup: 12 Main St, Dallas\nDestination: 90 Center St'}],form());
- const p=Object.fromEntries(response.suggestions.map(p=>[p.field,p.value]));assert.equal(p.service,'food');assert.equal(p['details.meal_count'],'3');assert.equal(p['details.restaurant_name'],'Example Cafe');assert.equal(p.pickup,'12 Main St, Dallas');assert.equal(p.payload,undefined);assert.equal(p.pallets,undefined);
+ const p=Object.fromEntries(response.suggestions.map(p=>[p.field,p.value]));assert.equal(p.service,'food');assert.equal(p['details.meal_count'],'3');assert.equal(p['details.restaurant_name'],'Example Cafe');assert.equal(p.pickup,'12 Main St, Dallas');assert.equal(p.payload,undefined);assert.equal(p.pallets,undefined);assert.doesNotMatch(response.reply,/What restaurant/);
 });
 test('assistant output cannot set rates, identity, permissions or irrelevant service fields',()=>{
  const fields=serviceDefaults(form(),'food');const p=sanitizeSuggestions([{field:'total_cents',value:'1'},{field:'organization_id',value:'victim'},{field:'role',value:'admin'},{field:'payload',value:'4200'},{field:'details.passenger_count',value:'8'},{field:'details.meal_count',value:'3'}],fields);
