@@ -54,3 +54,12 @@ Scope: Andertrack Staging (`ofyfausfhinwgrfmapgc`) and Vercel Preview only. No p
 ## Release gate
 
 Keep this branch unmerged. Publish only protected Vercel previews. Production readiness still requires real driver and dispatcher Auth sessions, two-device message delivery, real-device GPS/freshness/offline tests, and review of existing security advisories.
+
+## Follow-up usability pass
+
+- Shared queue: search by driver/request number, filter by service, retain global FIFO ranks, and show the driver's own request summary. Filtering never changes dispatch order.
+- Queue submission resolves the All services jobs filter to the same OTR value shown in the requested-service selector. Demo requests capture service and timestamp when submitted and cancel on going offline.
+- Messenger: drafts and demo messages survive driver-tab changes in memory, then clear on identity/workspace changes or leaving the app. No draft is saved in browser storage.
+- Polling and acknowledged sends merge by record ID, so a delayed refresh cannot hide an acknowledged send. Text entered during a pending send is preserved. Failed sends keep their draft and retry nonce; polling errors cannot clear send errors.
+- Messenger distinguishes offline, polling, failed refresh and subscribed realtime status. Saved to server is an acknowledgement only, never a read receipt. Manual refresh, dated messages, keyboard focus and a jump-to-latest control are available.
+- Follow-up suites: 134 website tests + 30 driver tests = 164 passing tests; both builds pass. Real-session and physical-device acceptance gates above remain open.
