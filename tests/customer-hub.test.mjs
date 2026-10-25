@@ -20,3 +20,16 @@ test('customer GPS is visible only during transit, while fresh and within its en
  assert.equal(trackingPosition({...shipment,tracking_expires_at:new Date(now-1).toISOString()},now),null);
  for(const patch of [{sharing:false},{online:false},{latitude:91},{longitude:181},{last_ping_at:new Date(now-61000).toISOString()}])assert.equal(trackingPosition({...shipment,gps:{...shipment.gps,...patch}},now),null);
 });
+
+test('food, rideshare and trash estimates never inherit hidden freight charges',()=>{
+ for(const service of ['food','rideshare','waste']){
+  const q=estimateQuote(SAMPLE_POLICY,{service,miles:65,pallets:26,payload:44000,urgency:'priority'});
+  assert.equal(q.pallet_cents,0);assert.equal(q.payload_cents,0);assert.equal(q.total_cents,19375);assert.equal(q.service_id,service);
+  assert.ok(estimateQuote(SAMPLE_POLICY,{service,miles:5,pallets:null,payload:null,urgency:'standard'}));
+ }
+});
+test('courier pricing uses package weight but never pallet handling',()=>{
+ const q=estimateQuote(SAMPLE_POLICY,{service:'courier',miles:65,pallets:26,payload:4200,urgency:'priority'});
+ assert.equal(q.pallet_cents,0);assert.equal(q.payload_cents,2500);assert.equal(q.total_cents,22500);
+ assert.equal(estimateQuote(SAMPLE_POLICY,{service:'courier',miles:5,pallets:null,payload:null,urgency:'standard'}),null);
+});
