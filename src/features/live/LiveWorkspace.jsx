@@ -11,13 +11,14 @@ function Label({ children, tone = '' }) {
 }
 const displayStatus = value => (value || 'unknown').replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-function Login({ onDemo }) {
+function Login({ onDemo, driver = false }) {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   async function submit(event) {
     event.preventDefault();
+    if (!supabase) return;
     setError(''); setBusy(true);
     try {
       const { error: authError } = await supabase.auth.signInWithOtp({
@@ -32,13 +33,13 @@ function Login({ onDemo }) {
       setBusy(false);
     }
   }
-  return <LoginExperience email={email} setEmail={setEmail} sent={sent} busy={busy} error={error} onSubmit={submit} onDemo={onDemo}
+  return <LoginExperience driver={driver} configured={supabaseConfigured} email={email} setEmail={setEmail} sent={sent} busy={busy} error={error} onSubmit={submit} onDemo={onDemo}
     onChangeEmail={() => { setSent(false); setError(''); }}/>;
 }
 function Configuration({ onDemo }) {
   return <div className="live-shell"><section className="live-login panel"><Database size={28} color="#ffcc83"/><h1>Supabase connection not configured</h1><p className="muted">Add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> to your deployment environment and restart the build. Never place a database password or service-role key in the frontend.</p><button className="secondary" onClick={onDemo}>Open sample dashboard</button></section></div>;
 }
-export default function LiveWorkspace({ onDemo }) {
+export default function LiveWorkspace({ onDemo, driver = false }) {
   const [session, setSession] = useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [memberships, setMemberships] = useState([]);
@@ -209,9 +210,9 @@ export default function LiveWorkspace({ onDemo }) {
     };
   }, [organizationId, userId, role, reload]);
 
-  if (!supabaseConfigured) return <Configuration onDemo={onDemo}/>;
+  if (!supabaseConfigured) return driver ? <Login driver onDemo={onDemo}/> : <Configuration onDemo={onDemo}/>;
   if (!authReady) return <div className="live-loading">Checking session…</div>;
-  if (!session) return <Login onDemo={onDemo}/>;
+  if (!session) return <Login driver={driver} onDemo={onDemo}/>;
   return <OpsCommandCenter
     session={session} memberships={memberships} membershipLoaded={membershipLoaded} organizationId={organizationId} setOrganizationId={setOrganizationId}
     role={role} profile={profile} assignments={assignments} dispatchRequests={dispatchRequests}
