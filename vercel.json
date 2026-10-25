@@ -5,13 +5,18 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!api(?:/|$)).*)",
       "destination": "/index.html"
     }
   ],
   "git": {
     "deploymentEnabled": {
       "feature/brand-login-website": false
+    }
+  },
+  "functions": {
+    "api/request-assistant.js": {
+      "maxDuration": 25
     }
   }
 }
