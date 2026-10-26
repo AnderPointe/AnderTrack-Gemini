@@ -27,3 +27,9 @@ An 8-request/minute per-user, per-instance throttle limits ordinary retries, wit
 - API tests inject mocked auth/model dependencies; they do not prove a live model call or Gateway credit availability.
 - Browser acceptance covers the guided customer conversation → review → local autofill path, service-safe fields, no automatic request submission, rich customer surfaces and rich driver cards/help.
 - Actual cloud inference requires a working customer Auth session and Gateway access/credits. No production deployment, database migration or real customer shipment write is part of this change.
+
+## Brand appearance update
+
+The shared theme now uses bright teal (#00E0CE), bright orange (#FF8A18), white and black. Service cards alternate teal/orange accents; no separate violet, blue, coral or lime service palette. Light backgrounds use a darker teal for readable text while keeping bright teal borders and highlights. Warning/error colors may still indicate operational status.
+
+A labeled sun/moon button is available on website and driver routes, including signed-out screens. The existing dispatch controls use the same React theme state. Dark is the first-visit default. Appearance persists under `andertrack_ui_theme`, survives reload/navigation, and synchronizes across tabs on the same origin. Separate app and website origins store preferences independently; this is a device/browser setting, not an account/database preference. Storage failures do not prevent switching for the current session. Mode changes do not clear forms, chat or job state. Native form controls follow the active color scheme; light connected map tiles use normal brightness.

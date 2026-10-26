@@ -37,3 +37,7 @@ html[data-theme=light] .connected-live-map .leaflet-tile-pane{filter:none}
 .brand-theme-toggle:focus-visible{outline:3px solid var(--brand-orange);outline-offset:4px}
 @media(max-width:600px){html[data-theme] .ud-page{padding-top:0}.ud-page .ud-nav{padding-bottom:78px}.brand-theme-toggle{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}}
 @media(prefers-reduced-motion:reduce){body .hub *,body .ud-page *,body .at-public-site *{animation:none!important;transition:none!important}}
+/* Secondary labels remain readable on a white canvas, including legacy driver routes. */
+html[data-theme] :is(.ud-summary span,.ud-desktop-head>a,.ud-brand small,.ud-estimate span,.ud-estimate small,.ud-env,.connected-messenger header small,.connected-queue header>strong,.driver-brand small,.driver-hero p,.driver-org-select,.driver-kpi span,.driver-footer){color:var(--brand-muted)}
+html[data-theme] :is(.driver-secondary,.driver-icon-button,.driver-select-wrap,.driver-select-wrap option){background:var(--brand-raised);color:var(--brand-text);border-color:var(--brand-border)}
+html[data-theme] :is(.ud-eyebrow,.ud-page .ud-eyebrow){color:var(--brand-accent-text)!important}
