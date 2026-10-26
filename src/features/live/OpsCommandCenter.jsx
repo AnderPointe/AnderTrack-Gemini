@@ -1,3 +1,4 @@
+import { useTheme } from '../../../apps/driver/src/theme/ThemeProvider.jsx';
 import {supabase} from '../../lib/supabase.js';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -201,8 +202,7 @@ export default function OpsCommandCenter({
   loading=false, sync='Not connected', reload=()=>{}, onDemo=()=>{}, onSignOut=()=>{},
 }) {
   const [view,setView]=useState('overview');
-  const [theme,setTheme]=useState(() => { try { return localStorage.getItem('andertrack_ui_theme') === 'light' ? 'light' : 'dark'; } catch { return 'dark'; } });
-  useEffect(() => { try { localStorage.setItem('andertrack_ui_theme',theme); } catch { /* Storage may be unavailable. */ } },[theme]);
+  const {theme,setTheme} = useTheme();
   const [query,setQuery]=useState('');
   const [filter,setFilter]=useState('all');
   const [selectedId,setSelectedId]=useState('');
