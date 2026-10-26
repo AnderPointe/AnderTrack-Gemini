@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import {createRoot} from 'react-dom/client';
 const App = lazy(() => import('./App.jsx'));
 import './styles.css';
+import './brand-rich.css';
 const UniversalDriver = lazy(() => import('./universal/UniversalDriver.jsx'));
 
 const isUniversal = window.location.pathname.replace(/\/+$/, '') === '/universal';
