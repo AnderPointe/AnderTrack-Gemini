@@ -16,6 +16,11 @@ test('map tooltips render hostile labels as literal text, never HTML',()=>{
  const document={createElement(tag){assert.equal(tag,'span');return {set innerHTML(value){throw Error('HTML assignment prohibited');}};}};
  assert.equal(mapTextLabel(hostile,document).textContent,hostile);
  assert.equal(mapTextLabel(null,document).textContent,'');
+ for(const file of ['../src/features/live/FleetMap.jsx','../src/features/live/FleetReplayMap.jsx','../src/features/live/ArcviewCinema.jsx','../apps/driver/src/connected/DriverLiveMap.jsx']){
+  const source=readFileSync(new URL(file,import.meta.url),'utf8');
+  assert.ok(source.includes('https://tile.openstreetmap.org/{z}/{x}/{y}.png'));
+  assert.match(source,/referrerPolicy:\s*'strict-origin'/);
+ }
 });
 for(const file of ['../vercel.json','../apps/driver/vercel.json'])test(`${file} restricts scripts, framing, referrers and caching without disabling GPS/photo`,()=>{
  const config=JSON.parse(readFileSync(new URL(file,import.meta.url),'utf8'));
@@ -23,8 +28,8 @@ for(const file of ['../vercel.json','../apps/driver/vercel.json'])test(`${file} 
  const csp=headers['Content-Security-Policy'];
  assert.match(csp,/script-src 'self';/);assert.doesNotMatch(csp,/unsafe-eval|script-src[^;]*unsafe-inline/);
  for(const rule of ["object-src 'none'","base-uri 'none'","frame-ancestors 'none'","form-action 'self'",'upgrade-insecure-requests'])assert.ok(csp.includes(rule));
- assert.match(csp,/https:\/\/ofyfausfhinwgrfmapgc.supabase.co/);assert.match(csp,/https:\/\/\*\.tile.openstreetmap.org/);
- assert.equal(headers['Referrer-Policy'],'no-referrer');assert.equal(headers['X-Content-Type-Options'],'nosniff');
+ assert.match(csp,/https:\/\/ofyfausfhinwgrfmapgc.supabase.co/);assert.match(csp,/https:\/\/tile.openstreetmap.org/);
+ assert.equal(headers['Referrer-Policy'],'strict-origin');assert.equal(headers['X-Content-Type-Options'],'nosniff');
  assert.match(headers['Permissions-Policy'],/geolocation=\(self\), camera=\(self\)/);
  assert.ok(config.headers.some(rule=>rule.headers.some(h=>h.key==='Cache-Control'&&h.value==='private, no-store')));
 });

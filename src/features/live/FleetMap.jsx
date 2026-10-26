@@ -55,7 +55,8 @@ export default function FleetMap({
       preferCanvas: true,
     }).setView([38.6, -96.6], 4);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      referrerPolicy: 'strict-origin',
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
       maxZoom: 18,
