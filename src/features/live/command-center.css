@@ -323,3 +323,4 @@
   .at-map-summary{top:55px;left:10px;right:10px}
   .at-map-error{top:106px;left:10px;right:10px}
 }
+.at-map-dense .at-map-pin-live{animation:none;box-shadow:none}.at-map-fit{position:absolute;right:14px;top:14px;z-index:500;border:1px solid #00e0ce;border-radius:8px;padding:9px 12px;background:#111;color:#fff;font:600 11px system-ui;cursor:pointer}.at-map-fit:focus-visible{outline:3px solid #ff8a18;outline-offset:3px}

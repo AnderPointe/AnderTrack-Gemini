@@ -2,6 +2,7 @@ import React, { lazy, Suspense, useState } from 'react';
 import './live.css';
 import './features/entry/entry-theme.css';
 
+const BeaconLab = lazy(() => import('./features/testing/BeaconLab.jsx'));
 const CustomerHub = lazy(() => import('./features/customer/CustomerHub.jsx'));
 const DemoApp = lazy(() => import('./App.jsx'));
 const LiveWorkspace = lazy(() => import('./features/live/LiveWorkspace.jsx'));
@@ -15,7 +16,7 @@ export default function Root() {
   const website = path === '/website' || (path === '/' && surface === 'website');
   const driver = path === '/driver' || (path === '/' && surface === 'driver');
   return <Suspense fallback={<div className="at-entry-loading" role="status">Loading AnderTrack…</div>}>
-    {path === '/hub' ? <CustomerHub/> : path === '/concept' ? <CommandConcept/> : mode === 'demo'
+    {path === '/tracking-lab' ? <BeaconLab/> : path === '/hub' ? <CustomerHub/> : path === '/concept' ? <CommandConcept/> : mode === 'demo'
     ? <DemoApp onReturn={() => setMode('live')} />
     : website
       ? <PublicWebsite onDemo={() => setMode('demo')} />
