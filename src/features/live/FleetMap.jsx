@@ -1,3 +1,4 @@
+import { mapTextLabel } from '../../lib/map-label.js';
 import React, { useEffect, useMemo, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -54,7 +55,8 @@ export default function FleetMap({
       preferCanvas: true,
     }).setView([38.6, -96.6], 4);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      referrerPolicy: 'strict-origin',
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
       maxZoom: 18,
@@ -120,7 +122,7 @@ export default function FleetMap({
         (isFresh ? ' · Recently reported' : ' · GPS stale / unavailable');
       popup.append(heading, details);
       pin.bindPopup(popup);
-      pin.bindTooltip(popup.textContent);
+      pin.bindTooltip(mapTextLabel(popup.textContent));
       pin.on('click', () => onChooseRef.current?.(point));
       pin.addTo(layer);
     });

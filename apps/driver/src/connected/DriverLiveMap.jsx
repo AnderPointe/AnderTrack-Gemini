@@ -8,7 +8,7 @@ export default function DriverLiveMap({position,label="Your shared GPS location 
   useEffect(()=>{
     if(!host.current)return;
     const instance=L.map(host.current,{zoomControl:true,scrollWheelZoom:false}).setView([32.75,-97.33],11);map.current=instance;
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap contributors'}).addTo(instance);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{referrerPolicy:'strict-origin',maxZoom:18,attribution:'© OpenStreetMap contributors'}).addTo(instance);
     return()=>{instance.remove();map.current=null;marker.current=null;};
   },[]);
   useEffect(()=>{if(!map.current||!position||!Number.isFinite(position.latitude)||!Number.isFinite(position.longitude))return;
