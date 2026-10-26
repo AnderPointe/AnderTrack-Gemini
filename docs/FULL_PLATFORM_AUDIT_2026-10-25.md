@@ -112,3 +112,9 @@ A rendered fleet map exposed an integration regression during verification: OSM 
 Unauthenticated HTTP verification of deployment URLs returned 302 to Vercel sign-in. The initial automatically-followed response belonged to Vercel's login page, not the app, and was rejected as application-header evidence. Security header configuration/build regression checks pass; exact authenticated wire-header inspection remains pending. Browser demonstrations load through the existing authorized browser session. Do not interpret the sign-in page's CSP as the application's policy.
 
 Observed product issue: switching to OTR sets 250 sample miles while preserving a one-hour default pickup/delivery interval. Dispatch currently reviews time feasibility manually; add service-aware window defaults and travel-time validation before operating automatically. Also fix singular/plural summary text (for example “1 passengers”, “1 cubic yards”).
+
+### Final map retest
+
+Website and driver preview builds at `e9242cc8da262a42ca752d71f0c1ea131f8278df` are READY. The final website browser demo fleet map visually renders roads, towns and five sample fleet markers after the correction. DOM inspection shows 11 of 11 tile images complete, all from `tile.openstreetmap.org`, with `referrerPolicy` set to `strict-origin`; the screenshot confirms actual map imagery rather than provider error images. This resolves the observed tile-policy regression. The rendered positions are five illustrative demo points, separate from the six-service backend simulation; real six-device tracking remains pending.
+
+Final checks after the correction: 162 website tests, 30 driver tests, both builds and `git diff --check` pass. No new database migrations or provider Auth settings were required.
