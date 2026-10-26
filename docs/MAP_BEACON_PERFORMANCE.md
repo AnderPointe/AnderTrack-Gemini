@@ -12,7 +12,7 @@
 
 ## Test lab
 
-`/tracking-lab` is an explicitly labeled simulation with no GPS permission, Supabase imports, database writes or real driver records. Six seed locations: Fort Worth, Orlando, Seattle, Los Angeles, Chicago and New York. Choose 6/100/500/1000 beacons; start/pause moving updates, advance one snapshot, make a selected beacon stale, restore it or remove it. Large runs move 10% of points per snapshot, deliberately leaving the others unchanged; those without fresh pings will eventually become stale. Updates pause while the tab is hidden. Stats measure marker reconciliation only, excluding network tiles and final browser painting. Not a tracking permission bypass or actual device test.
+`/tracking-lab` is an explicitly labeled simulation with no GPS permission, Supabase imports, database writes or real driver records. Six seed locations: Fort Worth, Orlando, Seattle, Los Angeles, Chicago and New York. Larger runs include synthetic grid points across the US region (not road-matched routes). Choose 6/100/500/1000 beacons; start/pause moving updates, advance one snapshot, make a selected beacon stale, restore it or remove it. Large runs move 10% of points per snapshot, deliberately leaving the others unchanged; those without fresh pings will eventually become stale. Updates pause while the tab is hidden. Stats measure marker reconciliation only, excluding network tiles and final browser painting. Not a tracking permission bypass or actual device test.
 
 ## Automated and database evidence
 
@@ -22,3 +22,7 @@
 - Website: 166 tests; driver: 30 tests. Both builds pass.
 
 A contracted production map provider and real simultaneous device/network/background GPS acceptance are still needed before claiming production tracking performance or availability. No map/network latency SLA is established here.
+
+## Deployed browser checks
+
+On the staging test lab, six moving beacons, stale-to-fresh restoration and removal controls passed. Switching 100 beacons to DOM markers and 500/1000 to canvas passed. A 1000-beacon browser run observed about 27.6 ms for initial layer creation and 1.2–3.0 ms for sampled updates moving 100 beacons, with zero replacements and 900 unchanged. These are observations from one cloud browser, not before/after controlled percentiles or device/network guarantees. A paused freshness-only scan was about 0.8–1.4 ms. No application console errors were observed (browser-extension messages excluded). Both staging builds are READY. A follow-up expands the large-count fixtures from city clusters to a US-region test grid for better visual spread.
