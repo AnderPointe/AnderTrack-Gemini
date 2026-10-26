@@ -1,3 +1,4 @@
+import { mapTextLabel } from '../../lib/map-label.js';
 import React, { useEffect, useMemo, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -120,7 +121,7 @@ export default function FleetMap({
         (isFresh ? ' · Recently reported' : ' · GPS stale / unavailable');
       popup.append(heading, details);
       pin.bindPopup(popup);
-      pin.bindTooltip(popup.textContent);
+      pin.bindTooltip(mapTextLabel(popup.textContent));
       pin.on('click', () => onChooseRef.current?.(point));
       pin.addTo(layer);
     });
