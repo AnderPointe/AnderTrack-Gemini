@@ -38,6 +38,15 @@ This audit uses the six requirements supplied by the user. A navigation label, i
 - Current staging schema has four additional inventory tables; all have RLS. Security advisor reports the same preexisting legacy-function/password warnings, with no new inventory exposure warning.
 - Inventory test fixture uses temporary synthetic Auth rows and authenticated SQL roles; it does not create verified operational users, log into a browser, send emails or change real driver qualifications. Existing user accounts remain untouched.
 
+### Browser acceptance on the Vercel preview
+
+Verified the deployed code at `a8991d0d49140cdea7ea6c540d50cf44ce3ae227` through the public website's **Explore the demo** entry. These are local synthetic demo interactions, separate from the staging SQL role simulations above.
+
+- Warehouse: issued 3 from 10 cases, saw 7 and a reorder alert; received 5, saw 12 and the alert clear; transferred 4 to RACK-B, retaining 12 total with BAY-A 8 / RACK-B 4. An attempted issue of 99 was refused without changing balances.
+- Created an AUDIT-TAPE catalog item and AUDIT-BIN location. The zero-stock item was flagged for reorder; the low-stock-only filter showed only that item. Stock CSV download completed.
+- Reporting: Class C plus in-transit filters returned only AT-2053, with 1 active shipment and 38 estimated miles. Reversed dates displayed the validation error and disabled export. Reset restored the records; filtered CSV download completed.
+- Screenshot: `docs/qa/core-inventory-audit.jpg` is local browser evidence. Real authenticated warehouse staff acceptance, concurrent operators and physical-device GPS remain unverified release gates.
+
 ## Files and release scope
 
 - Migration: `supabase/migrations/20261027232120_warehouse_inventory_core.sql` applied only to Andertrack Staging (`ofyfausfhinwgrfmapgc`).
