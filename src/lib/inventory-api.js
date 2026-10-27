@@ -1,0 +1,5 @@
+export async function inventorySnapshot(client,organizationId){
+ async function all(table,order){let out=[];for(let offset=0;offset<5000;offset+=1000){let query=client.from(table).select('*').eq('organization_id',organizationId);for(const column of order)query=query.order(column);const {data,error}=await query.range(offset,offset+999);if(error)throw error;out.push(...data);if(data.length<1000)return out;}throw Error('Inventory exceeds this pilot listing limit. A paginated warehouse view is required; partial stock totals are not shown.');}
+ const [items,locations,balances,history]=await Promise.all([all('at_inventory_items',['id']),all('at_warehouse_locations',['id']),all('at_inventory_balances',['item_id','location_id']),client.from('at_inventory_movements').select('*').eq('organization_id',organizationId).order('occurred_at',{ascending:false}).order('id',{ascending:false}).limit(100)]);
+ if(history.error)throw history.error;return {items,locations,balances,movements:history.data||[]};
+}

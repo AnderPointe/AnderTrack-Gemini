@@ -105,7 +105,7 @@ export function deriveActivityStream({
   return activity.sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)).slice(0,12);
 }
 
-function csvCell(value) {
+export function csvCell(value) {
   // Neutralize spreadsheet formula injection, even when users export customer-supplied text.
   const raw=String(value??'');
   const safe=/^[\s]*[=+@-]/.test(raw) ? "'"+raw : raw;

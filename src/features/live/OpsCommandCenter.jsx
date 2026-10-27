@@ -1,3 +1,5 @@
+import OperationalReports from './OperationalReports.jsx';
+import WarehouseInventory from '../warehouse/WarehouseInventory.jsx';
 import { useTheme } from '../../../apps/driver/src/theme/ThemeProvider.jsx';
 import {supabase} from '../../lib/supabase.js';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -328,7 +330,7 @@ export default function OpsCommandCenter({
             <h1>{view==='overview'?'Operations at a glance':getUniversalNavItem(view)?.label}</h1>
             <p>{view==='overview'?'Everything moving, everyone connected. One command center.':
               view==='tracking'?'Real-time fleet visibility, location history and live operational context.':
-              view==='warehouse'?'A bright equipment staging and warehouse operations view, linked to real shipment records.':
+              view==='warehouse'?'Inventory, storage locations, stock movements and equipment readiness.':
               view==='class-c'?'Local non-CDL fleet operations, vehicle health readiness and sample maintenance planning.':
               view==='delivery-overview'?'A modern overview of completed shipments, delivery activity and vehicle selection.':
               view==='driver-cockpit'?'Authorized driver delivery controls and transparent ELD, payroll and telemetry integration readiness.':
@@ -441,10 +443,10 @@ export default function OpsCommandCenter({
             isDemo={isDemo} role={role} currentUserId={userId} organizationId={organizationId}
             vehicles={vehicles} assignments={ordered} drivers={drivers}
             locations={locations} onOpenDispatch={()=>open('dispatch')}/>}
-          {view==='warehouse'&&<WarehouseOperationsDashboard
+          {view==='warehouse'&&<><WarehouseInventory key={'stock:'+organizationId+':'+userId+':'+isDemo} organizationId={organizationId} role={role} isDemo={isDemo}/><WarehouseOperationsDashboard
             key={organizationId+':'+userId+':'+(isDemo?'demo':'live')}
             vehicles={vehicles} drivers={drivers} assignments={ordered} isDemo={isDemo} role={role}
-            onOpenDispatch={()=>open('dispatch')} onOpenFleet={()=>open('fleet')}/>}
+            onOpenDispatch={()=>open('dispatch')} onOpenFleet={()=>open('fleet')}/></>}
           {view==='delivery-overview'&&<DeliveryOverviewDashboard
             key={organizationId+':'+userId+':'+(isDemo?'demo':'live')}
             assignments={ordered} vehicles={vehicles} drivers={drivers} isDemo={isDemo} role={role}
@@ -479,6 +481,7 @@ export default function OpsCommandCenter({
           </div>}
           {view==='fleet'&&<FleetPanel drivers={drivers} vehicles={vehicles} locations={locations}/>}
           {view==='analytics'&&<>
+            <OperationalReports assignments={ordered} isDemo={isDemo} onExport={exportShipments}/>
             <div className="at-metrics-grid">{metrics.map(m=><MetricCard key={m.label} {...m}/>)}</div>
             <div className="at-analytics-grid"><ActivityBars assignments={ordered}/><PerformancePanel assignments={ordered} drivers={drivers}/></div>
           </>}
