@@ -5,40 +5,56 @@ import AssignmentActions from './AssignmentActions.jsx';
 import DispatchRequestQueue from './DispatchRequestQueue.jsx';
 import OpsCommandCenter from './OpsCommandCenter.jsx';
 import LoginExperience from './LoginExperience.jsx';
+import {signupDetails,emailAuthRequest,authMessage} from './auth-model.js';
+import AccountWelcome from './AccountWelcome.jsx';
+import {useOperations} from '../../../apps/driver/src/connected/useOperations.js';
+import {CONNECTED_STAGING,mapLocations} from '../../../apps/driver/src/connected/operations.js';
 
 function Label({ children, tone = '' }) {
   return <span className={`pill ${tone}`}>{children}</span>;
 }
 const displayStatus = value => (value || 'unknown').replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-function Login({ onDemo }) {
-  const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  async function submit(event) {
-    event.preventDefault();
-    setError(''); setBusy(true);
-    try {
-      const { error: authError } = await supabase.auth.signInWithOtp({
-        email: email.trim().toLowerCase(),
-        options: { emailRedirectTo: window.location.origin, shouldCreateUser: false },
-      });
-      if (authError) setError(authError.message);
-      else setSent(true);
-    } catch (requestError) {
-      setError(requestError?.message || 'Could not contact authentication. Please retry later.');
-    } finally {
-      setBusy(false);
-    }
+function Login({onDemo,driver=false}) {
+  const [email,setEmail]=useState(''),[sent,setSent]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const [signup,setSignup]=useState(!driver&&new URLSearchParams(window.location.search).get('signup')==='1');
+  const [kind,setKind]=useState('individual'),[name,setName]=useState(''),[company,setCompany]=useState('');
+  const [capabilities,setCapabilities]=useState(null),[retryAt,setRetryAt]=useState(0),[clock,setClock]=useState(Date.now());
+  useEffect(()=>{const timer=setInterval(()=>setClock(Date.now()),1000);return()=>clearInterval(timer);},[]);
+  useEffect(()=>{
+    if(!supabaseConfigured)return;let active=true;const controller=new AbortController();
+    fetch(import.meta.env.VITE_SUPABASE_URL+'/auth/v1/settings',{headers:{apikey:import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY},signal:controller.signal})
+      .then(response=>{if(!response.ok)throw new Error('Unavailable');return response.json();})
+      .then(settings=>{if(active)setCapabilities({google:settings.external?.google===true,apple:settings.external?.apple===true,signup:settings.disable_signup===false,email:settings.external?.email===true});})
+      .catch(()=>{if(active)setCapabilities({google:false,apple:false,signup:false,email:false,unavailable:true});});
+    return()=>{active=false;controller.abort();};
+  },[]);
+  const changeMode=value=>{setSignup(value);setSent(false);setError('');};
+  async function submit(event){
+    event.preventDefault();if(!supabase||busy||Date.now()<retryAt)return;
+    setError('');setBusy(true);
+    try{
+      const details=signup?signupDetails({name,kind,company}):null;
+      if(signup&&!capabilities?.signup)throw new Error('New registrations are currently disabled.');
+      const {error:authError}=await supabase.auth.signInWithOtp(emailAuthRequest({email,signup,details,origin:window.location.origin,driver}));
+      setRetryAt(Date.now()+60000);
+      if(authError)throw authError;setSent(true);
+    }catch(e){setError(authMessage(e));}finally{setBusy(false);}
   }
-  return <LoginExperience email={email} setEmail={setEmail} sent={sent} busy={busy} error={error} onSubmit={submit} onDemo={onDemo}
-    onChangeEmail={() => { setSent(false); setError(''); }}/>;
+  async function social(provider){
+    if(busy||!capabilities?.[provider])return;setBusy(true);setError('');
+    try{const {error:authError}=await supabase.auth.signInWithOAuth({provider,options:{redirectTo:window.location.origin+(driver?'/driver':'/operations')}});if(authError)throw authError;}
+    catch(e){setError(authMessage(e));}finally{setBusy(false);}
+  }
+  return <LoginExperience driver={driver} configured={supabaseConfigured} email={email} setEmail={setEmail} sent={sent} busy={busy} error={error} onSubmit={submit} onDemo={onDemo}
+    signup={signup} onModeChange={changeMode} kind={kind} setKind={setKind} name={name} setName={setName} company={company} setCompany={setCompany}
+    capabilities={capabilities} onSocial={social} retrySeconds={Math.max(0,Math.ceil((retryAt-clock)/1000))}
+    onChangeEmail={()=>{setSent(false);setError('');}}/>;
 }
 function Configuration({ onDemo }) {
   return <div className="live-shell"><section className="live-login panel"><Database size={28} color="#ffcc83"/><h1>Supabase connection not configured</h1><p className="muted">Add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> to your deployment environment and restart the build. Never place a database password or service-role key in the frontend.</p><button className="secondary" onClick={onDemo}>Open sample dashboard</button></section></div>;
 }
-export default function LiveWorkspace({ onDemo }) {
+export default function LiveWorkspace({ onDemo, driver = false }) {
   const [session, setSession] = useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [memberships, setMemberships] = useState([]);
@@ -114,6 +130,13 @@ export default function LiveWorkspace({ onDemo }) {
   scopeRef.current = userId + ':' + organizationId;
   const role = membership?.role || '';
   const isPlanner = role === 'admin' || role === 'dispatcher';
+  const connected = useOperations(supabase,organizationId,userId,isPlanner,Boolean(session)&&CONNECTED_STAGING);
+  const combinedLocations = useMemo(()=>{
+    const byDriver = new Map(locations.map(row=>[row.driver_id,row]));
+    for(const row of connected.locations)byDriver.delete(row.driver_user_id);
+    for(const row of mapLocations(connected.locations))byDriver.set(row.driver_id,{...row,unit_number:connected.drivers.find(d=>d.user_id===row.driver_id)?.display_name||row.unit_number});
+    return [...byDriver.values()];
+  },[locations,connected.locations,connected.drivers]);
 
   const reload = useCallback(async () => {
     if (!supabase || !userId || !organizationId || !role) return;
@@ -209,13 +232,14 @@ export default function LiveWorkspace({ onDemo }) {
     };
   }, [organizationId, userId, role, reload]);
 
-  if (!supabaseConfigured) return <Configuration onDemo={onDemo}/>;
+  if (!supabaseConfigured) return driver ? <Login driver onDemo={onDemo}/> : <Configuration onDemo={onDemo}/>;
   if (!authReady) return <div className="live-loading">Checking session…</div>;
-  if (!session) return <Login onDemo={onDemo}/>;
+  if (!session) return <Login driver={driver} onDemo={onDemo}/>;
+  if(membershipLoaded&&!memberships.length&&!error)return <AccountWelcome session={session} onDemo={onDemo} onSignOut={()=>supabase.auth.signOut({scope:'local'})} onWorkspace={async()=>{const {data,error:e}=await supabase.from('at_organization_members').select('organization_id, role').eq('user_id',userId);if(e)throw e;setMemberships(data||[]);setOrganizationId(data?.[0]?.organization_id||'');}}/>;
   return <OpsCommandCenter
     session={session} memberships={memberships} membershipLoaded={membershipLoaded} organizationId={organizationId} setOrganizationId={setOrganizationId}
-    role={role} profile={profile} assignments={assignments} dispatchRequests={dispatchRequests}
-    drivers={drivers} vehicles={vehicles} locations={locations} loading={loading} error={error}
+    role={role} profile={profile} assignments={CONNECTED_STAGING?connected.assignments:assignments} dispatchRequests={CONNECTED_STAGING?connected.queue.map(row=>({...row,status:'queued'})):dispatchRequests}
+    drivers={CONNECTED_STAGING?connected.drivers:drivers} vehicles={vehicles} locations={combinedLocations} loading={loading} error={error||connected.error}
     sync={sync} reload={reload} onDemo={onDemo}
     onSignOut={() => supabase.auth.signOut({scope:'global'})}/>;
 }

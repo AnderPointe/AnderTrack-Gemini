@@ -10,6 +10,9 @@ import {
   DEMO_DISPATCH_MESSAGES,DEMO_DURATION_SERIES,
 } from '../../lib/reference-dashboards.js';
 import './reference-dashboards.css';
+import {supabase} from '../../lib/supabase.js';
+import Messenger from '../../../apps/driver/src/connected/Messenger.jsx';
+import {CONNECTED_STAGING} from '../../../apps/driver/src/connected/operations.js';
 
 const nice=value=>String(value||'Not recorded').replaceAll('_',' ').replace(/\b\w/g,x=>x.toUpperCase());
 const timeStamp=value=>{
@@ -35,7 +38,7 @@ function DemoTimeChart(){
   </svg>;
 }
 export default function DispatchModeDashboard({
-  assignments=[],drivers=[],vehicles=[],locations=[],role='',isDemo=false,organizationId='',
+  assignments=[],drivers=[],vehicles=[],locations=[],role='',isDemo=false,organizationId='',currentUserId='',
   onReviewLoad=()=>{},onOpenQueue=()=>{},onOpenFleet=()=>{},
 }) {
   const planner=isDemo||role==='admin'||role==='dispatcher';
@@ -150,10 +153,10 @@ export default function DispatchModeDashboard({
         </section>
         <section className="at-rdash-panel at-rdash-chat">
           <div className="at-rdash-section-title"><h3><MessageCircle size={18}/> Chat with Driver</h3>
-            <span className="at-rdash-source-label">{isDemo?'LOCAL DEMO CHAT':'MESSAGING NOT CONNECTED'}</span></div>
+            <span className="at-rdash-source-label">{isDemo?'LOCAL DEMO CHAT':CONNECTED_STAGING?'STAGING MESSENGER':'MESSAGING NOT CONNECTED'}</span></div>
           <p className="at-rdash-chat-target">{view?.driver?.display_name||'No driver assigned'}
             {' · '}{view?.vehicle?.unit_number||'Unassigned vehicle'}</p>
-          {isDemo?<><div className="at-rdash-chat-log" aria-label="Illustrative dispatch conversation" role="log">
+          {!isDemo&&CONNECTED_STAGING&&selected?.driver_user_id&&currentUserId?<Messenger key={organizationId+':'+selected.driver_user_id} client={supabase} organizationId={organizationId} driverUserId={selected.driver_user_id} currentUserId={currentUserId} title="Chat with assigned driver"/>:isDemo?<><div className="at-rdash-chat-log" aria-label="Illustrative dispatch conversation" role="log">
             {messages.map(m=><div key={m.id} className={'at-rdash-bubble '+m.speaker}>
               <div>{m.text}</div><small>{m.time} · {m.speaker==='driver'?'Example driver':'Example dispatch'}</small>
             </div>)}</div>
@@ -163,14 +166,14 @@ export default function DispatchModeDashboard({
               <button type="submit" disabled={!chatText.trim()} aria-label="Send local demo message"><Send size={17}/></button></form>
             <p className="at-rdash-panel-note">Demo messages stay on this page only. No real driver receives them.</p>
           </>:<div className="at-rdash-chat-unavailable"><ShieldAlert size={27}/>
-            <strong>Two-way messaging is not connected</strong>
-            <p>No message table or transport has been configured. This panel will not pretend messages were delivered.</p>
+            <strong>{CONNECTED_STAGING?'Choose an assigned driver':'Two-way messaging is not connected'}</strong>
+            <p>{CONNECTED_STAGING?'Select an assigned task, or open Messages & Task Intake to start a private driver conversation.':'No message table or transport has been configured. This panel will not pretend messages were delivered.'}</p>
             <button type="button" onClick={onOpenQueue}>Open dispatch workflow <ArrowRight size={14}/></button></div>}
         </section>
       </div>
     </div>
     <div className="at-rdash-integrity"><ShieldCheck size={16}/>
       {isDemo?'Sample preview: chat, history graph, positions and assignments are fictitious.':
-      'Live dispatch data is limited to verified organization-scoped records; chat, road ETA and trip duration comparison are not connected.'}</div>
+      CONNECTED_STAGING?'Live dispatch uses organization-scoped records and private driver messaging. Road ETA and trip-duration comparison remain unconnected.':'Live dispatch data is limited to verified organization-scoped records; chat, road ETA and trip duration comparison are not connected.'}</div>
   </div>;
 }

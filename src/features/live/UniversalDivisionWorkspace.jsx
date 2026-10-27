@@ -7,6 +7,7 @@ import {
   UNIVERSAL_DIVISIONS, getUniversalWorkspace,
 } from '../../lib/universal-navigation.js';
 import './universal-workspace.css';
+import {CONNECTED_STAGING} from '../../../apps/driver/src/connected/operations.js';
 
 const icons = {
   freight:Truck, hotshot:Zap, warehouse:Warehouse,
@@ -46,7 +47,7 @@ export function UniversalDivisionWorkspace({view,onNavigate=()=>{},role='',isDem
   const links=workspace.links.filter(link=>!link.planner||planner);
   return <section className="at-universal-workspace" aria-labelledby="at-universal-workspace-heading">
     <div className="at-universal-workspace-intro">
-      <span className="at-universal-architecture-tag">Architecture preview • No live service</span>
+      <span className="at-universal-architecture-tag">{CONNECTED_STAGING&&view!=='hotshot'?'Staging tasks available • Marketplace planned':'Architecture preview • No live service'}</span>
       <h2 id="at-universal-workspace-heading">{workspace.title}</h2>
       <p>{workspace.description}</p>
     </div>
@@ -61,6 +62,6 @@ export function UniversalDivisionWorkspace({view,onNavigate=()=>{},role='',isDem
       <div>{links.map(link=><button key={link.id} type="button" className="at-button at-button-secondary"
         onClick={()=>onNavigate(link.id)}>{link.label}<ArrowRight size={16}/></button>)}</div>
     </div>}
-    <p className="at-universal-release-note">No food orders, ride requests, payment processing, or freight tendering are activated by this preview. Real workflows require dedicated authorization, data models, and staging QA.</p>
+    <p className="at-universal-release-note">{CONNECTED_STAGING&&view!=='hotshot'?'Dispatch-created service tasks are available below in staging. Customer ordering, marketplace payments and production services remain inactive.':'No food orders, ride requests, payment processing, or freight tendering are activated by this preview. Real workflows require dedicated authorization, data models, and staging QA.'}</p>
   </section>;
 }

@@ -1,3 +1,4 @@
+import {supabase} from '../../lib/supabase.js';
 import React,{useEffect,useMemo,useState} from 'react';
 import {
   Activity, ArrowRight, Banknote, BatteryCharging, CalendarClock, CheckCircle2,
@@ -338,7 +339,7 @@ export default function DriverCockpit({
           </div>
           <AssignmentActions assignment={shipment} role={role} currentUserId={currentUserId}
             profile={profile} drivers={drivers} vehicles={vehicles} onChanged={reload}/>
-          <DeliveryWorkflow key={organizationId+':'+shipment.id} assignment={shipment}
+          <DeliveryWorkflow client={supabase} key={organizationId+':'+shipment.id} assignment={shipment}
             organizationId={organizationId} currentUserId={currentUserId}
             role={role} profile={profile} onChanged={reload}/>
           </>:<div className="at-cockpit-unconnected"><PackageCheck size={20}/><div>

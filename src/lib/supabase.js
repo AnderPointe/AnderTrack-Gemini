@@ -1,9 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
+import { publicSupabaseConfig } from '../../apps/driver/src/security/public-config.js';
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-export const supabaseConfigured = Boolean(url && publishableKey && publishableKey !== 'replace_with_your_publishable_key');
+export const supabaseConfigured = publicSupabaseConfig(url, publishableKey);
 
 export const supabase = supabaseConfigured
   ? createClient(url, publishableKey, {

@@ -1,0 +1,197 @@
+:root{
+  color-scheme:dark;
+  font-family:Inter,"Segoe UI",system-ui,-apple-system,sans-serif;
+  background:#08121d;color:#ecf6fa;font-synthesis:none;
+  --bg:#08121d;--card:#111f2e;--card2:#152638;--border:#294054;
+  --teal:#46d6bd;--orange:#ffab52;--muted:#95a9b7;
+}
+*{box-sizing:border-box}
+body{margin:0;min-width:300px;background:var(--bg)}
+button,input,select{font:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+.driver-shell{min-height:100dvh;background:
+  radial-gradient(ellipse at top right,rgba(33,109,113,.19),transparent 55%),#08121d;
+  display:flex;flex-direction:column}
+.driver-topbar{width:100%;padding:15px max(20px,calc((100vw - 1100px)/2));
+  min-height:77px;display:flex;justify-content:space-between;align-items:center;gap:16px;
+  background:#0a1723e8;border-bottom:1px solid #2a404b;position:sticky;top:0;z-index:10;backdrop-filter:blur(16px)}
+.driver-brand{display:flex;gap:13px;align-items:center}
+.driver-logo{width:43px;height:43px;border-radius:12px;display:grid;place-items:center;
+  color:#001917;background:linear-gradient(145deg,#55efd0,#1d8d94);box-shadow:0 2px 22px #27c5ab21}
+.driver-brand strong{font-size:18px;font-weight:900;letter-spacing:.045em}
+.driver-brand strong span{color:#3ad4ba}
+.driver-brand small{display:block;color:#8297a8;font-size:9px;letter-spacing:.21em;margin-top:3px;font-weight:750}
+.driver-topbar-end{display:flex;align-items:center;gap:10px}
+.driver-connect{display:flex;align-items:center;gap:5px;border:1px solid #426362;background:#1d3d3f66;
+  border-radius:22px;font-size:11px;font-weight:750;padding:7px 10px;color:#78e0cb}
+.driver-connect.offline{background:#56301c44;border-color:#67492c;color:#f8bd72}
+.driver-icon-button{height:37px;width:37px;background:#162737;color:#d9e7ef;border:1px solid #345064;border-radius:10px}
+.driver-icon-button:hover,.driver-secondary:hover{border-color:var(--teal)}
+.driver-main{flex:1;width:min(1100px,100%);margin:0 auto;padding:32px 24px 60px}
+.driver-footer{text-align:center;font-size:10px;letter-spacing:.06em;color:#758d9e;padding:15px}
+.driver-eyebrow{display:inline-flex;align-items:center;gap:6px;color:#5cdbc5;
+  font-size:10px;letter-spacing:.14em;font-weight:850}
+.driver-hero{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:35px;
+  border-radius:20px;border:1px solid #326666;background:linear-gradient(120deg,#18383b 0%,#0e2232 80%)}
+.driver-hero h1{font-size:32px;letter-spacing:-.045em;line-height:1.1;margin:13px 0 11px}
+.driver-hero p{color:#a5b8c4;margin:0;max-width:570px;font-size:13px;line-height:1.65}
+.driver-hero-icon{height:100px;width:120px;display:grid;place-items:center;border:1px solid #39777c;
+  border-radius:20px;color:#56e4c8;box-shadow:inset 0 0 30px #2dbfb51a}
+.driver-context-row{display:flex;justify-content:space-between;align-items:flex-end;gap:15px;margin:25px 0 18px}
+.driver-org-select{display:grid;gap:7px;color:#a4b7c5;font-weight:680;font-size:11px}
+.driver-select-wrap{display:flex;align-items:center;position:relative;border:1px solid #3b5262;border-radius:10px;background:#142536}
+.driver-select-wrap select{background:transparent;border:0;padding:11px 35px 11px 13px;appearance:none;
+  color:#e8f5fb;min-width:190px;outline-offset:3px}
+.driver-select-wrap option{background:#122436}
+.driver-select-wrap svg{pointer-events:none;position:absolute;right:12px;color:var(--muted)}
+.driver-primary,.driver-secondary{border:1px solid transparent;padding:11px 14px;min-height:43px;
+  border-radius:10px;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-size:12px;font-weight:800}
+.driver-primary{color:#07271f;background:linear-gradient(135deg,#57e1cb,#2da998)}
+.driver-primary:hover{filter:brightness(1.07)}
+.driver-secondary{background:#182c3b;border-color:#375267;color:#d5e9f0}
+button:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.driver-kpi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:30px}
+.driver-kpi{display:grid;gap:10px;border:1px solid var(--border);background:var(--card);
+  border-radius:14px;padding:21px}
+.driver-kpi span{display:flex;align-items:center;gap:8px;color:#a8bdc9;font-size:12px}
+.driver-kpi svg{color:var(--teal)}
+.driver-kpi strong{font-size:28px;letter-spacing:-.04em}
+.driver-kpi-word{font-size:19px!important}
+.driver-section{background:var(--card);border:1px solid var(--border);border-radius:17px;padding:23px;margin-top:18px}
+.driver-section-title{display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:22px}
+.driver-section h2{font-size:20px;letter-spacing:-.025em;margin:6px 0 0}
+.driver-count{font-size:11px;font-weight:800;color:#b3c8d5;padding:6px 10px;border-radius:8px;background:#233747}
+.driver-tabs{display:flex;gap:6px;border-bottom:1px solid #344d5a;padding-bottom:10px;margin-bottom:19px}
+.driver-tabs button{padding:10px 11px;color:#9cb4c2;border:0;border-radius:9px;background:transparent;
+  display:flex;align-items:center;gap:8px;font-size:12px;font-weight:780}
+.driver-tabs button.selected{color:#63e0c8;background:#254545aa}
+.driver-tabs button span{background:#274152;padding:2px 6px;border-radius:6px;font-size:10px}
+.driver-empty{min-height:172px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
+  color:#acbfca;text-align:center;border:1px dashed #3e5562;border-radius:12px;padding:25px;font-size:13px}
+.driver-empty svg{color:#57cbbb}
+.driver-empty p{font-size:12px;color:#839aaa;max-width:350px;margin:0}
+.driver-jobs{display:grid;gap:14px}
+.driver-job-card{border:1px solid #354d5e;border-radius:13px;background:#0f202d;padding:20px;display:grid;gap:18px}
+.driver-job-offer{border-color:#d1934f99;box-shadow:inset 3px 0 0 #ffac54}
+.driver-job-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}
+.driver-job-heading h3{font-size:18px;letter-spacing:-.03em;margin:7px 0 0}
+.driver-status{font-size:10px;font-weight:850;text-transform:uppercase;padding:6px 8px;border-radius:6px;
+  background:#28435a;color:#aad4ee;white-space:nowrap}
+.status-offered{background:#684b2269;color:#ffbf68}
+.status-delivered{background:#16654b55;color:#73e0bd}
+.driver-trip{display:grid;gap:0}
+.driver-trip-step{display:flex;align-items:flex-start;gap:12px}
+.driver-trip-step>div{display:grid;gap:4px}
+.driver-trip-step small{font-size:10px;color:#849dab;font-weight:750}
+.driver-trip-step strong{font-size:13px;line-height:1.5;font-weight:720}
+.driver-dot{flex:0 0 12px;width:12px;height:12px;border-radius:50%;margin-top:16px;background:#56d8be;border:3px solid #1c675e}
+.driver-dot.end{background:#ffac54;border-color:#674b2e}
+.driver-trip-separator{margin:0 0 0 5px;height:23px;border-left:2px dashed #506778}
+.driver-job-tags{display:flex;flex-wrap:wrap;gap:9px}
+.driver-job-tags span{display:flex;align-items:center;gap:6px;background:#203444;color:#afc3cd;
+  padding:8px 10px;border-radius:7px;font-size:11px}
+.driver-job-actions{display:flex;gap:8px;flex-wrap:wrap}
+.driver-readonly-note,.driver-safety-note{font-size:11px;color:#b1bfc9;line-height:1.6;margin:0;
+  background:#1a314144;border:1px solid #324d5d;border-radius:9px;padding:11px}
+.driver-safety-note{color:#e9ba87;border-color:#735130}
+.driver-alert,.driver-notice{display:flex;align-items:flex-start;gap:9px;border:1px solid #ac584c;
+  background:#5b232348;border-radius:9px;padding:13px;color:#ffd0c6;font-size:12px;margin:12px 0}
+.driver-notice{border-color:#2d937a;background:#144e454e;color:#a0f1d8}
+.driver-location{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px}
+.driver-location p{color:#95aab8;font-size:12px;max-width:600px;margin:9px 0 0;line-height:1.5}
+.driver-coordinate{font-size:12px;color:#70dfcb;width:100%;display:flex;gap:9px;align-items:center}
+.driver-access{display:grid;justify-items:start;align-content:center;gap:15px;min-height:60dvh;
+  background:#122333;border:1px solid var(--border);border-radius:20px;padding:40px}
+.driver-access svg{color:var(--teal)}
+.driver-access h1{font-size:27px;letter-spacing:-.04em;margin:0}
+.driver-access p{font-size:14px;line-height:1.6;color:#acbfca;max-width:600px}
+.driver-auth{margin:55px auto;width:min(500px,100%);border:1px solid #365968;
+  background:linear-gradient(150deg,#162b3a,#102130);border-radius:20px;padding:35px}
+.driver-auth-icon{display:grid;place-items:center;width:55px;height:55px;border:1px solid #398d80;
+  color:#72e8d2;border-radius:14px;margin-bottom:22px}
+.driver-auth h1{font-size:31px;line-height:1.12;letter-spacing:-.04em;margin:12px 0 15px}
+.driver-auth p{font-size:13px;color:#adbfca;line-height:1.65}
+.driver-auth form{display:grid;gap:12px;margin-top:25px}
+.driver-auth label{font-size:12px;color:#c2d7e2}
+.driver-auth input{width:100%;padding:14px;border:1px solid #3a5568;border-radius:9px;color:#f4fbff;
+  background:#0c1b27;outline-offset:2px}
+.driver-form-message{color:#72e0c1!important;font-size:12px}
+.spin{animation:spin 1.3s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:720px){
+ .driver-topbar{padding:12px 17px}
+ .driver-brand strong{font-size:15px}
+ .driver-main{padding:20px 13px 50px}
+ .driver-hero{padding:24px;min-height:170px}
+ .driver-hero h1{font-size:25px}
+ .driver-hero-icon{display:none}
+ .driver-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .driver-kpi:last-child{grid-column:span 2}
+ .driver-kpi{padding:17px}
+ .driver-section{padding:16px}
+ .driver-tabs button{font-size:11px;padding:9px 8px}
+ .driver-job-card{padding:16px}
+ .driver-job-actions a,.driver-job-actions button{flex:1}
+ .driver-auth{margin:15px auto;padding:25px}
+ .driver-auth h1{font-size:27px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important}}
+
+/* Training walkthrough: intentionally isolated from authenticated driver data. */
+.at-training-root{display:grid;gap:20px}
+.at-training-alert{display:flex;align-items:flex-start;gap:14px;padding:19px;border:1px solid #a37a3a;
+  border-radius:14px;background:#4c341f3c;color:#ffd49a}
+.at-training-alert strong{font-size:12px;letter-spacing:.07em}
+.at-training-alert p{font-size:12px;line-height:1.6;margin:6px 0 0;color:#efcfa9}
+.at-training-alert svg{flex-shrink:0}
+.at-training-header{display:flex;justify-content:space-between;gap:24px;align-items:center;padding:18px 6px}
+.at-training-header h1{font-size:30px;line-height:1.1;letter-spacing:-.035em;margin:10px 0}
+.at-training-header p{font-size:13px;max-width:680px;color:var(--muted);line-height:1.6;margin:0}
+.at-training-truck{color:var(--teal);flex-shrink:0}
+.at-training-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+.at-training-jobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.at-training-job{align-content:start}
+.at-training-route{display:grid;gap:9px;padding:10px 0;color:#b2c5cf;font-size:12px}
+.at-training-route span{display:flex;align-items:center;gap:9px}
+.at-training-feedback{color:#a8ddcf;line-height:1.6;font-size:12px}
+.at-training-audit ul{padding:0;list-style:none;display:grid;gap:9px}
+.at-training-audit li{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:11px;
+  border-top:1px solid #2d4454;padding:10px 0}
+.at-training-audit li>svg{color:#6adfba}
+.at-training-audit li span{display:flex;align-items:center;gap:5px;color:#a8bcc8}
+.at-training-disclaimer{color:#849dac;font-size:11px;line-height:1.6}
+.at-training-launch{margin-top:23px;padding:18px;border-radius:12px;border:1px dashed #3d6571;
+  background:#21405242}
+.at-training-launch p{font-size:12px;margin:0 0 11px;color:#acc5cf}
+.driver-cooldown{color:#fac991!important;font-size:12px!important}
+.at-readiness-intro{color:var(--muted);line-height:1.6;font-size:12px;max-width:700px}
+.at-readiness-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0}
+.at-readiness-check{border:1px solid #395061;border-radius:10px;padding:12px;display:flex;align-items:flex-start;gap:10px}
+.at-readiness-check svg{flex-shrink:0;color:#e8ac64}
+.at-readiness-check.passed svg{color:#5de3c2}
+.at-readiness-check div{display:grid;gap:5px}
+.at-readiness-check strong{font-size:12px}
+.at-readiness-check span{color:#9aafbe;line-height:1.5;font-size:11px}
+.at-readiness-footer{font-size:12px;line-height:1.6;color:#dfb177;
+  display:flex;gap:10px;align-items:flex-start}
+.at-readiness-footer svg{flex-shrink:0;margin-top:2px}
+@media(max-width:720px){
+ .at-training-jobs,.at-readiness-grid{grid-template-columns:1fr}
+ .at-training-header h1{font-size:25px}
+ .at-training-truck{display:none}
+ .at-training-alert{padding:14px}
+ .at-training-root{gap:15px}
+}
+
+/* AnderTrack brand theme — retain existing driver workflow and status semantics. */
+:root{background:#000;color:#fff;--bg:#000;--card:#121212;--card2:#121212;--border:#292929;--teal:#087d79;--orange:#ff8a18;--muted:#b3b3b3}
+.driver-shell{background:#000}.driver-topbar{background:#000;border-color:#292929}.driver-logo{background:#087d79;color:#fff}.driver-brand strong>span{color:#ff8a18}
+.driver-primary{background:#ff8a18;color:#000}.driver-secondary{background:#121212;border-color:#087d79;color:#fff}
+.driver-auth{background:#000;border:0;box-shadow:none;max-width:450px;padding:0 12px 30px;margin:0 auto}.driver-auth-logo{display:block;width:min(280px,75vw);height:auto;aspect-ratio:1;object-fit:contain;margin:0 auto 12px}
+.driver-auth .driver-auth-icon{color:#28c9be;background:transparent;border:0;width:44px;height:44px;margin:0 auto 10px}.driver-auth h1{text-align:center;font-size:36px;letter-spacing:-1px;margin:16px 0 10px}.driver-auth>.driver-eyebrow{display:block;text-align:center;color:#b3b3b3}.driver-auth>p{color:#b3b3b3;text-align:center}
+.driver-auth input{background:#121212;border:1px solid #292929;color:#fff;font-size:16px;min-height:54px}.driver-auth input::placeholder{color:#999}.driver-auth input:focus{border-color:#087d79;outline:2px solid #087d79;outline-offset:2px}
+.driver-auth .driver-primary{min-height:54px;font-size:14px}.driver-login-help{font-size:11px;color:#b3b3b3;line-height:1.7;margin:0}.driver-login-support{font-size:11px;line-height:1.8;margin-top:24px}.driver-auth .at-training-launch{background:#121212;border-color:#292929}.driver-auth .at-training-launch p{color:#b3b3b3}.driver-auth .driver-form-message{color:#fff}
+.driver-tabs button.active{background:#087d79;color:#fff}.driver-kpi svg,.driver-eyebrow{color:#32cbbf}
+:is(button,a,input,select):focus-visible{outline:3px solid #ff8a18;outline-offset:4px}

@@ -38,10 +38,10 @@ export default function AssignmentActions({
   }, [a?.id, a?.status]);
 
   const eligibleVehicles = useMemo(() => (vehicles || [])
-    .filter(v => v.enabled && (
+    .filter(v => v.enabled && (!a?.required_license_class || v.required_license_class===a.required_license_class) && (
       (a?.division === 'CDL' && ['A', 'B'].includes(v.required_license_class))
       || (a?.division === 'Class C' && v.required_license_class === 'C')
-    )), [vehicles, a?.division]);
+    )), [vehicles, a?.division, a?.required_license_class]);
 
   const chosenVehicle = eligibleVehicles.find(v => v.id === vehicleId);
   const eligibleDrivers = useMemo(() => (drivers || []).filter(d =>

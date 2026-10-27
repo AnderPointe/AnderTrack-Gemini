@@ -1,11 +1,25 @@
-import React, { useState } from 'react';
-import DemoApp from './App.jsx';
-import LiveWorkspace from './features/live/LiveWorkspace.jsx';
+import React, { lazy, Suspense, useState } from 'react';
 import './live.css';
+import './features/entry/entry-theme.css';
+
+const BeaconLab = lazy(() => import('./features/testing/BeaconLab.jsx'));
+const CustomerHub = lazy(() => import('./features/customer/CustomerHub.jsx'));
+const DemoApp = lazy(() => import('./App.jsx'));
+const LiveWorkspace = lazy(() => import('./features/live/LiveWorkspace.jsx'));
+const PublicWebsite = lazy(() => import('./features/entry/PublicWebsite.jsx'));
+const CommandConcept = lazy(() => import('./features/entry/CommandConcept.jsx'));
 
 export default function Root() {
   const [mode, setMode] = useState('live');
-  return mode === 'demo'
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  const surface = import.meta.env.VITE_APP_SURFACE;
+  const website = path === '/website' || (path === '/' && surface === 'website');
+  const driver = path === '/driver' || (path === '/' && surface === 'driver');
+  return <Suspense fallback={<div className="at-entry-loading" role="status">Loading AnderTrack…</div>}>
+    {path === '/tracking-lab' ? <BeaconLab/> : path === '/hub' ? <CustomerHub/> : path === '/concept' ? <CommandConcept/> : mode === 'demo'
     ? <DemoApp onReturn={() => setMode('live')} />
-    : <LiveWorkspace onDemo={() => setMode('demo')} />;
+    : website
+      ? <PublicWebsite onDemo={() => setMode('demo')} />
+      : <LiveWorkspace driver={driver} onDemo={() => setMode('demo')} />}
+  </Suspense>;
 }

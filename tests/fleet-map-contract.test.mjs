@@ -16,7 +16,7 @@ test('unified map keeps modern and Phase 4 props', () => {
 
 test('map validates GPS, labels data safely, and avoids resetting pan/zoom on updates', () => {
   assert.ok(source.includes('filter(validGpsPosition)'));
-  assert.ok(source.includes('freshGpsPosition(point)'));
+  assert.ok(source.includes('freshGpsPosition(point,Date.now(),maxAgeMs)'));
   assert.ok(source.includes('textContent = point.unit_number'));
   assert.ok(source.includes('!fittedRef.current && points.length'));
   assert.ok(source.includes('marker-color'));

@@ -1,0 +1,8 @@
+import React from 'react';
+import {REQUEST_SERVICES} from '../../../apps/driver/src/connected/service-request.js';
+import {dollars} from './pricing.js';
+export default function QuoteBreakdown({quote,estimate=false}){
+ if(!quote)return <p className="hub-muted">Enter valid service details and mileage to see the estimate.</p>;
+ const config=REQUEST_SERVICES[quote.service_id||'freight'];
+ return <section className="hub-quote" aria-label="Transparent rate breakdown"><span className="hub-eyebrow">{estimate?'ESTIMATE · DISPATCH REVIEW REQUIRED':'QUOTE BREAKDOWN · USD'}</span><h2>{dollars(quote.total_cents)}</h2><dl>{[['Base service',quote.base_cents],['Distance · '+quote.miles+' mi',quote.distance_cents],...(config?.pallets?[['Pallet handling',quote.pallet_cents]]:[]),...(config?.weight?[['Weight increments',quote.payload_cents]]:[]),['Urgency',quote.urgency_cents],['Minimum fare adjustment',quote.minimum_adjustment_cents]].map(([name,value])=><div key={name}><dt>{name}</dt><dd>{dollars(value)}</dd></div>)}</dl><div className="hub-pay"><span>Driver compensation<strong>{dollars(quote.driver_cents)}</strong></span><span>Service fee · included<strong>{dollars(quote.service_fee_cents)}</strong></span></div><p className="hub-muted">Policy v{quote.policy_version}. {config?.weight?'Weight is charged in started 1,000 lb increments. ':''}{!config?.weight?'No pallet or weight charges apply to this service. ':''} Priority adds 25%; express adds 50% before the minimum. No charge or payout is processed here. Taxes, tolls, special equipment and accessorials require dispatch review.</p></section>;
+}

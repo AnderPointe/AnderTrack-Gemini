@@ -1,3 +1,5 @@
+import { useTheme } from '../../../apps/driver/src/theme/ThemeProvider.jsx';
+import {supabase} from '../../lib/supabase.js';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, BarChart3, Bell, CheckCircle2,
@@ -25,7 +27,10 @@ import {WarehouseOperationsDashboard,DeliveryOverviewDashboard} from './ModernOp
 import DriverVehicleProfiles from './DriverVehicleProfiles.jsx';
 import ClassCOpsDashboard from './ClassCOpsDashboard.jsx';
 import {UniversalDivisionLaunchpad,UniversalDivisionWorkspace} from './UniversalDivisionWorkspace.jsx';
-import {UNIVERSAL_NAV_GROUPS,getUniversalNavItem,getUniversalWorkspace} from '../../lib/universal-navigation.js';
+import {UNIVERSAL_NAV_GROUPS,UNIVERSAL_NAV_ITEMS,getUniversalNavItem,getUniversalWorkspace} from '../../lib/universal-navigation.js';
+import UniversalDispatchFoundation from './UniversalDispatchFoundation.jsx';
+import './universal-dispatch.css';
+import ConnectedDispatch, {CreateServiceTask,ServiceTaskWorkspace} from './ConnectedDispatch.jsx';
 
 const UNIVERSAL_ICONS = {
   dashboard:LayoutDashboard, map:MapPinned, dispatch:Radio, route:Route,
@@ -105,7 +110,7 @@ function ShipmentDetail({ active, driver, organizationId, role, currentUserId, p
       {!isDemo ? <>
         <AssignmentActions assignment={active} role={role} currentUserId={currentUserId}
           profile={profile} drivers={drivers} vehicles={vehicles} onChanged={reload}/>
-        <DeliveryWorkflow key={organizationId + ':' + active.id} assignment={active}
+        <DeliveryWorkflow client={supabase} key={organizationId + ':' + active.id} assignment={active}
           organizationId={organizationId} currentUserId={currentUserId}
           role={role} profile={profile} onChanged={reload}/>
         <ShipmentJourney key={'journey:' + organizationId + ':' + currentUserId + ':' + active.id}
@@ -197,8 +202,7 @@ export default function OpsCommandCenter({
   loading=false, sync='Not connected', reload=()=>{}, onDemo=()=>{}, onSignOut=()=>{},
 }) {
   const [view,setView]=useState('overview');
-  const [theme,setTheme]=useState(() => { try { return localStorage.getItem('andertrack_ui_theme') === 'light' ? 'light' : 'dark'; } catch { return 'dark'; } });
-  useEffect(() => { try { localStorage.setItem('andertrack_ui_theme',theme); } catch { /* Storage may be unavailable. */ } },[theme]);
+  const {theme,setTheme} = useTheme();
   const [query,setQuery]=useState('');
   const [filter,setFilter]=useState('all');
   const [selectedId,setSelectedId]=useState('');
@@ -353,8 +357,11 @@ export default function OpsCommandCenter({
             <option key={m.organization_id} value={m.organization_id}>{m.organization_id.slice(0,8)} · {m.role}</option>)}</select></div>}
           {noDriver&&<div className="at-alert"><LockKeyhole size={18}/> Driver onboarding incomplete. Your organization must create a profile and verify your license before assignments and queue requests are available.</div>}
           {getUniversalWorkspace(view)&&<UniversalDivisionWorkspace view={view} onNavigate={open} role={role} isDemo={isDemo}/>}
+          <ServiceTaskWorkspace key={view+':'+organizationId} view={view} organizationId={organizationId} role={role} assignments={assignments} onChanged={reload} isDemo={isDemo} onReview={id=>{setSelectedId(id);open('dispatch');}}/>
           {view==='overview'&&<>
             <UniversalDivisionLaunchpad onNavigate={open}/>
+            <UniversalDispatchFoundation assignments={ordered} organizationId={organizationId} isDemo={isDemo} canPlan={planner||isDemo}
+              onOpenDispatch={()=>open('dispatch')} onOpenPlanner={()=>open('dispatch-planner')}/>
             <div className="at-metrics-grid">{metrics.map(m=><MetricCard key={m.label} {...m}/>)}</div>
             <div className="at-hero-grid">
               <TrackingPanel locations={locations} theme={theme} isDemo={isDemo} drivers={drivers} onChoose={onChoose} scopeKey={organizationId}/>
@@ -414,6 +421,7 @@ export default function OpsCommandCenter({
             requests={dispatchRequests} organizationId={organizationId} role={role} isDemo={isDemo}
             onOpenDispatch={()=>open('dispatch')}
             onReviewLoad={id=>{setSelectedId(id);setQuery('');setFilter('all');open('dispatch');}}/>}
+          {view==='communications'&&<ConnectedDispatch key={organizationId+':'+userId} organizationId={organizationId} session={session} role={role} drivers={drivers} onChanged={reload} isDemo={isDemo}/>}
           {view==='dispatch'&&<div className="at-dispatch-grid">
             <div>{isDemo?<section className="at-surface"><CardHeading eyebrow="QUEUE / DEMONSTRATION" title="First-in first-out"/>
               <p className="at-subtext">Phase 5 processes queue requests in database order. Connect authorized driver accounts to test the live queue.</p>
@@ -422,6 +430,7 @@ export default function OpsCommandCenter({
               <div className="at-demo-note"><LockKeyhole size={15}/> Demo only — claim controls disabled.</div></section>:
               <DispatchRequestQueue organizationId={organizationId} role={role} currentUserId={userId} profile={profile}
                 requests={dispatchRequests} drivers={drivers} assignments={assignments} vehicles={vehicles} onChanged={reload}/>}
+              {!isDemo&&planner&&<CreateServiceTask key={organizationId} organizationId={organizationId} onChanged={reload}/>}
               <ShipmentPanel assignments={ordered} selected={selected} onSelect={setSelectedId} filter={filter} setFilter={setFilter} query={query} onExport={exportShipments}/>
             </div>
             <ShipmentDetail active={selected} driver={currentDriver} role={role} organizationId={organizationId}
@@ -450,7 +459,7 @@ export default function OpsCommandCenter({
             <DispatchModeDashboard
               key={organizationId+':'+userId+':'+(isDemo?'demo':'live')}
               assignments={ordered} drivers={drivers} vehicles={vehicles} locations={locations}
-              role={role} isDemo={isDemo} organizationId={organizationId}
+              role={role} isDemo={isDemo} organizationId={organizationId} currentUserId={userId}
               onReviewLoad={id=>{setSelectedId(id);setQuery('');setFilter('all');open('dispatch');}}
               onOpenQueue={()=>open('dispatch')} onOpenFleet={()=>open('fleet')}/>
             {(planner||isDemo)&&<DriverVehicleProfiles
@@ -490,7 +499,7 @@ export default function OpsCommandCenter({
         </>}
         <AlertDrawer open={alertDrawerOpen} alerts={alerts} activity={activity} snoozes={scopedSnoozes} onNavigate={goToItem}
           onSnooze={onSnooze} onRestore={onRestore} onClose={()=>setAlertDrawerOpen(false)} isDemo={isDemo}/>
-        <CommandPalette open={paletteOpen} onClose={()=>setPaletteOpen(false)} onNavigate={goToItem} assignments={ordered} drivers={drivers} pages={NAV}/>
+        <CommandPalette open={paletteOpen} onClose={()=>setPaletteOpen(false)} onNavigate={goToItem} assignments={ordered} drivers={drivers} pages={UNIVERSAL_NAV_ITEMS}/>
         {focusedPin&&<div className="at-floating-detail" role="status"><Truck size={19}/><div><strong>{focusedPin.unit_number||focusedPin.display_name||'Fleet unit'}</strong>
           <small>{human(focusedPin.status)} · Last ping {focusedPin.last_ping_at?new Date(focusedPin.last_ping_at).toLocaleString():'unknown'}</small></div>
           <button onClick={()=>setFocusedPin(null)} aria-label="Dismiss fleet detail"><X size={17}/></button></div>}
