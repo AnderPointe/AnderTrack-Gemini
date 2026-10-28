@@ -23,3 +23,5 @@
 .vc-map-wrap[data-map-mode=standard] .vc-demo-map svg>text{fill:#34443f}
 .vc-map-wrap[data-map-mode=standard] .vc-demo-map>span{color:#34443f}
 .at-cinema-map-wrap.at-map-appearance>.at-map-appearance-toggle{top:58px}
+.at-map-appearance .at-map-coordinates{right:145px}
+@media(max-width:600px){.at-map-appearance .at-map-coordinates{display:none}}
