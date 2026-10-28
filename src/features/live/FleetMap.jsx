@@ -1,3 +1,4 @@
+import {MapAppearanceToggle,useMapAppearance} from '../../../apps/driver/src/map/MapAppearance.jsx';
 import { reconcileBeacons } from '../../lib/beacon-reconciler.js';
 import { mapTextLabel } from '../../lib/map-label.js';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -36,6 +37,7 @@ export default function FleetMap({
   maxAgeMs = 300000,
   onRenderStats,
 }) {
+  const appearance=useMapAppearance();
   const hostRef = useRef(null);
   const mapRef = useRef(null);
   const layerRef = useRef(null);
@@ -148,11 +150,12 @@ export default function FleetMap({
   }, [points,clock,maxAgeMs]);
 
   return (
-    <section className={'at-fleet-map at-map-' + theme + (points.length>80?' at-map-dense':'') + ' ' + className}
+    <section data-map-mode={appearance.mode} className={'at-map-appearance at-fleet-map at-map-' + theme + (points.length>80?' at-map-dense':'') + ' ' + className}
       aria-label="Authorized fleet locations">
       <div ref={hostRef} className="at-fleet-map-canvas"
         role="region" aria-label="Interactive fleet map" />
 
+      <MapAppearanceToggle mode={appearance.mode} onToggle={appearance.toggle}/>
       <button type="button" className="at-map-fit" onClick={()=>{const layer=layerRef.current;if(layer?.getLayers().length)mapRef.current.fitBounds(layer.getBounds().pad(.2),{maxZoom:11,animate:false});}}>Fit all beacons</button>
       <div className="at-map-coordinates">
         <span className="at-map-crosshair">+</span> NORTH AMERICA / LIVE TELEMETRY

@@ -1,3 +1,4 @@
+import {MapAppearanceToggle,useMapAppearance} from '../../../apps/driver/src/map/MapAppearance.jsx';
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -22,6 +23,7 @@ function clockTime(value) {
 }
 
 function CinemaMap({location,snapshot,effects,recenter,mode,interactive}) {
+  const appearance=useMapAppearance();
   const host=useRef(null);
   const map=useRef(null);
   const layer=useRef(null);
@@ -77,7 +79,8 @@ function CinemaMap({location,snapshot,effects,recenter,mode,interactive}) {
     }
   },[recenter,snapshot]);
   if(mode!=='map')return null;
-  return <div className="at-cinema-map-wrap" aria-label="Large read-only vehicle position map">
+  return <div className="at-cinema-map-wrap at-map-appearance" data-map-mode={appearance.mode} aria-label="Large read-only vehicle position map">
+    <MapAppearanceToggle mode={appearance.mode} onToggle={appearance.toggle}/>
     <div className="at-cinema-map" ref={host} role="region" aria-label="Reported vehicle position on OpenStreetMap"/>
     <div className="at-cinema-map-grid" aria-hidden="true"/>
     <div className={'at-cinema-map-reticle'+(effects?' running':'')} aria-hidden="true">

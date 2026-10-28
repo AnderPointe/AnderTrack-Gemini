@@ -1,3 +1,4 @@
+import {MapAppearanceToggle,useMapAppearance} from '../../../apps/driver/src/map/MapAppearance.jsx';
 import React,{useEffect,useRef} from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -10,6 +11,7 @@ import { validGpsPosition } from '../../lib/operations.js';
 export default function FleetReplayMap({
   points=[],selectedIndex=0,unit=null,fence=null,onChooseCenter=()=>{},scopeKey='',
 }) {
+  const appearance=useMapAppearance();
   const hostRef=useRef(null);
   const mapRef=useRef(null);
   const overlayRef=useRef(null);
@@ -99,7 +101,8 @@ export default function FleetReplayMap({
     }
   },[points,selectedIndex,unit,fence]);
 
-  return <div className="at-replay-map" aria-label="Recorded GPS route replay">
+  return <div className="at-replay-map at-map-appearance" data-map-mode={appearance.mode} aria-label="Recorded GPS route replay">
+    <MapAppearanceToggle mode={appearance.mode} onToggle={appearance.toggle}/>
     <div ref={hostRef} className="at-replay-map-canvas" role="region" aria-label="Recorded GPS positions with interactive monitoring circle"/>
     <div className="at-replay-map-label">GPS TRACE · STRAIGHT SEGMENTS · CLICK TO SET MONITORING CENTER</div>
     {(!points.length&&!validGpsPosition(unit))&&<div className="at-replay-empty">
