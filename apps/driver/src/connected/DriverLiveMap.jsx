@@ -2,12 +2,14 @@ import React,{useEffect,useRef} from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './connected.css';
+import {MapAppearanceToggle,useMapAppearance} from '../map/MapAppearance.jsx';
 
 export default function DriverLiveMap({position,label="Your shared GPS location on the live map"}){
+  const appearance=useMapAppearance();
   const host=useRef(null),map=useRef(null),marker=useRef(null);
   useEffect(()=>{
     if(!host.current)return;
-    const instance=L.map(host.current,{zoomControl:true,scrollWheelZoom:false,zoomAnimation:false}).setView([32.75,-97.33],11);map.current=instance;
+    const instance=L.map(host.current,{zoomControl:false,scrollWheelZoom:false,zoomAnimation:false}).setView([32.75,-97.33],11);map.current=instance;L.control.zoom({position:'bottomright'}).addTo(instance);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{referrerPolicy:'strict-origin',updateWhenIdle:true,updateWhenZooming:false,maxZoom:18,attribution:'© OpenStreetMap contributors'}).addTo(instance);
     return()=>{instance.remove();map.current=null;marker.current=null;};
   },[]);
@@ -22,5 +24,5 @@ export default function DriverLiveMap({position,label="Your shared GPS location 
       if(!map.current.getBounds().pad(-.2).contains(point))map.current.setView(point,map.current.getZoom(),{animate:false});
     }
   },[position]);
-  return <div ref={host} className="connected-live-map" role="img" aria-label={label}/>;
+  return <section className="at-driver-map-frame at-map-appearance" data-map-mode={appearance.mode} aria-label="Live map appearance"><div ref={host} className="connected-live-map" role="region" aria-label={label}/><MapAppearanceToggle mode={appearance.mode} onToggle={appearance.toggle}/></section>;
 }
