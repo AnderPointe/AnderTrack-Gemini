@@ -57,3 +57,18 @@ Website regression suite: 178 tests. Driver regression suite: 33 tests, includin
 ## Scope
 
 No production promotion, merge, real-driver qualification change, real location transmission or external dispatch message is performed by this UI change. The monitoring task continues to watch its previously approved immutable baseline; this feature preview is not silently substituted into monitoring.
+
+## Browser acceptance evidence
+
+Verified on Vercel preview code `35e3f3c854a327227e1ab6274d40f9cf0daf8f3e`, then rechecked navigation/theme/demo wording on refined code `932fe992723d739b16d404b4292c77b9137f2241`:
+
+- Overview, Location, Health, Maintenance and History render; ArrowRight from Maintenance selects History; visible-history CSV download completes.
+- All six service sample jobs appear under All services / All jobs. OTR sample TEST-2049 progresses offer → accepted → pickup → transit → completed. Earnings reflects its sample $310 and retains the no-payout disclosure.
+- Demo availability permits joining the OTR queue; own request appears as position 2 with the correct service. Existing sample driver remains visible. No dispatch request is transmitted.
+- Local demo message sends and appears as You with Demo only. This does not demonstrate two-way messaging between real devices.
+- Account and legacy link remain reachable; `/legacy` renders the retained driver login/training entry. Real account login was not performed.
+- Light/dark toggles render both palettes. Final main navigation stays fixed to the viewport bottom; all six nav buttons measured 48px tall in the desktop browser. Main tab changes return to top. Physical-phone viewport/keyboard/glove acceptance remains pending.
+- No application console errors observed during these checks (browser-extension errors excluded).
+- Local screenshots: `docs/qa/driver-cockpit-dark.jpg` and `docs/qa/driver-cockpit-light.jpg`. The sample map and truck are illustrations, not live GPS/traffic or an assigned vehicle photo.
+
+Issues corrected during QA: navigation was below the long Home content, so it is now persistent; main view changes reset scroll; demo availability/privacy wording now explicitly says no device location is requested/shared. Remaining product/data gaps are listed in the fix plan above.
