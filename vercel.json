@@ -17,6 +17,9 @@
   "functions": {
     "api/request-assistant.js": {
       "maxDuration": 25
+    },
+    "api/health.js": {
+      "maxDuration": 5
     }
   },
   "headers": [

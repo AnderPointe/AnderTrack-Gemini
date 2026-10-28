@@ -1,3 +1,5 @@
+> **Historical setup notes:** This document contains an older repository, environment and authentication snapshot. Do not execute its launch checklist as current instructions. Use [the current deployment and maintenance runbook](DEPLOYMENT_MAINTENANCE_RUNBOOK.md) and verify live project configuration before any domain or production change.
+
 # Andetrack.com — GitHub + Vercel + Supabase deployment
 
 **Status:** Deployment configuration only; does NOT provision a Vercel site, alter DNS, activate Supabase production migrations, or bind the domain. All those steps must be verified independently.
