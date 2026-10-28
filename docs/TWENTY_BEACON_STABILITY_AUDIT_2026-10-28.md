@@ -49,3 +49,9 @@ The test exercises the actual map renderer/reconciler and UI against synthetic p
 2. Test network loss/reconnect, out-of-order fixes, reconnect bursts and client retry/coalescing. Capture p95 end-to-end latency, duplicate events, request volume and errors.
 3. Profile a physical low-end phone and dispatcher tablet for rendering/frame time, memory and battery over a full shift; compare baseline and twice workload.
 4. Preserve the current incremental marker identity/reconciliation approach. Do not infer capacity from one workstation's local sync time or remove safety/access gates to make a test pass.
+
+## Final regression verification
+
+Refined preview `6b857cd19c9064e1b26a54ca02b46749271420c5`: removing selected TEST-20 now selects `lab-0`, keeps the inspector controls enabled and leaves 19 map markers. Selecting the 20-point scenario resets movement metrics to the initial unmeasured state, excluding fixture transitions. Resume was also observed on the sustained-test preview: 69 further movement rounds with all 20 moving, before pausing again. No real GPS/network pipeline claim is made.
+
+**Verdict: pass for the tested 20-beacon foreground rendering simulation.** Real-client ingestion, reconnection, full-shift device performance and backend throughput remain unverified, as listed above.
