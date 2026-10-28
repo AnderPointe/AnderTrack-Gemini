@@ -1,0 +1,32 @@
+name: Check paired staging deployments
+on:
+  workflow_dispatch:
+    inputs:
+      website_url:
+        description: Website HTTPS Vercel deployment origin
+        required: true
+      driver_url:
+        description: Driver HTTPS Vercel deployment origin
+        required: true
+      expected_commit:
+        description: Full 40-character commit SHA expected on both deployments
+        required: true
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check liveness, release pairing and static entry files
+        run: node scripts/release-smoke.mjs
+        env:
+          WEBSITE_PREVIEW_URL: ${{ inputs.website_url }}
+          DRIVER_PREVIEW_URL: ${{ inputs.driver_url }}
+          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
