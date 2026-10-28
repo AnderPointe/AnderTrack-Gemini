@@ -38,7 +38,7 @@ export function useDriverLocation(api,org,user,enabled){
           const values=locationPayload(p,org,sessionToken);await api.rpc('at_publish_driver_location',values);
           if(scope!==generation.current)return;
           if(!began){await api.rpc('at_set_driver_online',{p_organization_id:org,p_online:true,p_session_id:sessionToken});began=true;}
-          if(scope!==generation.current)return;lastSend.current=Date.now();setPosition({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy,last_ping_at:new Date().toISOString()});setSharing(true);setStarting(false);setError('');if(!settled){settled=true;pending.current=null;resolve();}
+          if(scope!==generation.current)return;lastSend.current=Date.now();setPosition({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy,heading:values.p_heading,speed_mph:values.p_speed_mph,last_ping_at:new Date().toISOString()});setSharing(true);setStarting(false);setError('');if(!settled){settled=true;pending.current=null;resolve();}
         }catch(e){await fail(e);}finally{if(scope===generation.current)inflight.current=false;}
       };
       const options={enableHighAccuracy:true,maximumAge:0,timeout:20000};
