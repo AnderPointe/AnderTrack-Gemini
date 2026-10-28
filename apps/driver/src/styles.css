@@ -195,3 +195,12 @@ button:disabled{opacity:.45;cursor:not-allowed;filter:none}
 .driver-auth .driver-primary{min-height:54px;font-size:14px}.driver-login-help{font-size:11px;color:#b3b3b3;line-height:1.7;margin:0}.driver-login-support{font-size:11px;line-height:1.8;margin-top:24px}.driver-auth .at-training-launch{background:#121212;border-color:#292929}.driver-auth .at-training-launch p{color:#b3b3b3}.driver-auth .driver-form-message{color:#fff}
 .driver-tabs button.active{background:#087d79;color:#fff}.driver-kpi svg,.driver-eyebrow{color:#32cbbf}
 :is(button,a,input,select):focus-visible{outline:3px solid #ff8a18;outline-offset:4px}
+
+/* Field use: keep interactive controls large enough for touch without altering map gestures. */
+@media (pointer:coarse), (max-width:720px){
+ .driver-shell :is(button,a.driver-primary,a.driver-secondary,input:not([type=checkbox]):not([type=radio]),select),
+ .ud-page :is(button,a.ud-primary,input:not([type=checkbox]):not([type=radio]),select){min-height:48px}
+ .driver-shell button,.ud-page button{min-width:48px;touch-action:manipulation}
+ .driver-icon-button{width:48px;height:48px}
+}
+.driver-shell :focus-visible,.ud-page :focus-visible{outline:3px solid var(--orange,#ff8a18);outline-offset:3px}
